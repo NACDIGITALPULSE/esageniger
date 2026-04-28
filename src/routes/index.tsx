@@ -42,18 +42,18 @@ function HomePage() {
         <div className="absolute inset-0 -z-10 bg-[image:var(--gradient-hero)]" />
         <div className="container mx-auto px-4 py-24 lg:px-8 lg:py-36">
           <div className="max-w-3xl text-primary-foreground">
-            <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 backdrop-blur">
+            <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 backdrop-blur animate-fade-in">
               <img src={logo} alt="" width={28} height={28} className="h-7 w-7 rounded" />
               <span className="text-xs font-medium uppercase tracking-wider">École Supérieure depuis 20 ans</span>
             </div>
-            <h1 className="font-serif text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+            <h1 className="font-serif text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl animate-fade-in-up">
               Travail – Rigueur – Succès
             </h1>
-            <p className="mt-4 text-lg text-primary-foreground/90 sm:text-xl">
+            <p className="mt-4 text-lg text-primary-foreground/90 sm:text-xl animate-fade-in-up delay-200">
               La réussite au bout de l'effort. Notre choix, notre assurance en l'avenir.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row animate-fade-in-up delay-300">
+              <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 hover-lift">
                 <Link to="/admissions">
                   S'inscrire maintenant <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -77,10 +77,14 @@ function HomePage() {
             { icon: GraduationCap, title: "Formation professionnelle", desc: "Des programmes BTS, Licence et Master conçus pour répondre aux besoins réels des entreprises et de l'administration." },
             { icon: Users, title: "Enseignants expérimentés", desc: "Un corps professoral composé d'enseignants permanents et de professionnels en activité dans les entreprises." },
             { icon: Award, title: "Diplômes reconnus", desc: "Des diplômes d'État et internationaux qui ouvrent les portes des meilleures opportunités professionnelles." },
-          ].map((s) => (
-            <Card key={s.title} className="border-border shadow-[var(--shadow-card)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]">
+          ].map((s, i) => (
+            <Card
+              key={s.title}
+              className="border-border shadow-[var(--shadow-card)] hover-lift animate-fade-in-up"
+              style={{ animationDelay: `${i * 120}ms` }}
+            >
               <CardContent className="p-8">
-                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-primary">
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-primary transition-transform duration-300 hover:scale-110 hover:rotate-6">
                   <s.icon className="h-6 w-6" />
                 </div>
                 <h3 className="font-serif text-xl font-bold">{s.title}</h3>
@@ -108,8 +112,10 @@ function HomePage() {
           </div>
 
           <div className="mt-10 grid gap-6 md:grid-cols-2">
-            <Card className="overflow-hidden border-border">
-              <img src={studentsImg} alt="Étudiants ESAGE" loading="lazy" width={1280} height={896} className="h-56 w-full object-cover" />
+            <Card className="overflow-hidden border-border hover-lift animate-slide-in-left group">
+              <div className="overflow-hidden">
+                <img src={studentsImg} alt="Étudiants ESAGE" loading="lazy" width={1280} height={896} className="h-56 w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              </div>
               <CardContent className="p-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-primary">
                   <BookOpen className="h-3 w-3" /> BTS d'État
@@ -120,8 +126,10 @@ function HomePage() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="overflow-hidden border-border">
-              <img src={gradImg} alt="Diplômés ESAGE" loading="lazy" width={1280} height={896} className="h-56 w-full object-cover" />
+            <Card className="overflow-hidden border-border hover-lift animate-slide-in-right group">
+              <div className="overflow-hidden">
+                <img src={gradImg} alt="Diplômés ESAGE" loading="lazy" width={1280} height={896} className="h-56 w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              </div>
               <CardContent className="p-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-primary">
                   <Sparkles className="h-3 w-3" /> Licence & Master
@@ -138,14 +146,18 @@ function HomePage() {
 
       {/* STATS */}
       <section className="container mx-auto px-4 py-20 lg:px-8">
-        <div className="grid gap-8 rounded-2xl bg-primary p-10 text-primary-foreground sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 rounded-2xl bg-[image:var(--gradient-primary)] p-10 text-primary-foreground shadow-[var(--shadow-elegant)] sm:grid-cols-2 lg:grid-cols-4">
           {[
             { value: "20+", label: "Années d'expérience" },
             { value: "15+", label: "Filières proposées" },
             { value: "1000+", label: "Étudiants formés" },
             { value: "3", label: "Niveaux : BTS, Licence, Master" },
-          ].map((s) => (
-            <div key={s.label} className="text-center">
+          ].map((s, i) => (
+            <div
+              key={s.label}
+              className="text-center animate-fade-in-up"
+              style={{ animationDelay: `${i * 120}ms` }}
+            >
               <div className="font-serif text-4xl font-bold sm:text-5xl">{s.value}</div>
               <div className="mt-2 text-sm text-primary-foreground/80">{s.label}</div>
             </div>
@@ -165,8 +177,12 @@ function HomePage() {
               { name: "Aïcha M.", role: "Diplômée Licence Marketing", quote: "ESAGE m'a donné les outils pour décrocher mon premier emploi avant même la fin de mes études." },
               { name: "Ibrahim S.", role: "BTS Finance Banque", quote: "Des enseignants disponibles, des cours pratiques. Je recommande vivement cette école." },
               { name: "Fatima O.", role: "Master GRH", quote: "Une formation rigoureuse qui m'a permis d'évoluer rapidement dans ma carrière professionnelle." },
-            ].map((t) => (
-              <Card key={t.name} className="border-border bg-background shadow-[var(--shadow-card)]">
+            ].map((t, i) => (
+              <Card
+                key={t.name}
+                className="border-border bg-background shadow-[var(--shadow-card)] hover-lift animate-fade-in-up"
+                style={{ animationDelay: `${i * 150}ms` }}
+              >
                 <CardContent className="p-8">
                   <div className="text-4xl text-primary/30">"</div>
                   <p className="mt-2 text-sm italic text-foreground/80">{t.quote}</p>
