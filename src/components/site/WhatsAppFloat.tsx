@@ -8,7 +8,7 @@ export function WhatsAppFloat() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contactez-nous sur WhatsApp"
-      className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-[var(--whatsapp)] px-4 py-3 text-white shadow-lg transition-transform hover:scale-105"
+      className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-[var(--whatsapp)] px-4 py-3 text-white shadow-lg transition-transform hover:scale-105 animate-pulse-ring"
     >
       <MessageCircle className="h-5 w-5" />
       <span className="hidden text-sm font-medium sm:inline">WhatsApp</span>
