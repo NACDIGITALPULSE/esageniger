@@ -9,13 +9,43 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as GalerieRouteImport } from './routes/galerie'
+import { Route as FraisRouteImport } from './routes/frais'
 import { Route as FormationsRouteImport } from './routes/formations'
+import { Route as EquipeRouteImport } from './routes/equipe'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AdmissionsRouteImport } from './routes/admissions'
 import { Route as AProposRouteImport } from './routes/a-propos'
 import { Route as IndexRouteImport } from './routes/index'
 
+const GalerieRoute = GalerieRouteImport.update({
+  id: '/galerie',
+  path: '/galerie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FraisRoute = FraisRouteImport.update({
+  id: '/frais',
+  path: '/frais',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FormationsRoute = FormationsRouteImport.update({
   id: '/formations',
   path: '/formations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipeRoute = EquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdmissionsRoute = AdmissionsRouteImport.update({
+  id: '/admissions',
+  path: '/admissions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AProposRoute = AProposRouteImport.update({
@@ -32,40 +62,120 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a-propos': typeof AProposRoute
+  '/admissions': typeof AdmissionsRoute
+  '/contact': typeof ContactRoute
+  '/equipe': typeof EquipeRoute
   '/formations': typeof FormationsRoute
+  '/frais': typeof FraisRoute
+  '/galerie': typeof GalerieRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/a-propos': typeof AProposRoute
+  '/admissions': typeof AdmissionsRoute
+  '/contact': typeof ContactRoute
+  '/equipe': typeof EquipeRoute
   '/formations': typeof FormationsRoute
+  '/frais': typeof FraisRoute
+  '/galerie': typeof GalerieRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/a-propos': typeof AProposRoute
+  '/admissions': typeof AdmissionsRoute
+  '/contact': typeof ContactRoute
+  '/equipe': typeof EquipeRoute
   '/formations': typeof FormationsRoute
+  '/frais': typeof FraisRoute
+  '/galerie': typeof GalerieRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/a-propos' | '/formations'
+  fullPaths:
+    | '/'
+    | '/a-propos'
+    | '/admissions'
+    | '/contact'
+    | '/equipe'
+    | '/formations'
+    | '/frais'
+    | '/galerie'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/a-propos' | '/formations'
-  id: '__root__' | '/' | '/a-propos' | '/formations'
+  to:
+    | '/'
+    | '/a-propos'
+    | '/admissions'
+    | '/contact'
+    | '/equipe'
+    | '/formations'
+    | '/frais'
+    | '/galerie'
+  id:
+    | '__root__'
+    | '/'
+    | '/a-propos'
+    | '/admissions'
+    | '/contact'
+    | '/equipe'
+    | '/formations'
+    | '/frais'
+    | '/galerie'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AProposRoute: typeof AProposRoute
+  AdmissionsRoute: typeof AdmissionsRoute
+  ContactRoute: typeof ContactRoute
+  EquipeRoute: typeof EquipeRoute
   FormationsRoute: typeof FormationsRoute
+  FraisRoute: typeof FraisRoute
+  GalerieRoute: typeof GalerieRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/galerie': {
+      id: '/galerie'
+      path: '/galerie'
+      fullPath: '/galerie'
+      preLoaderRoute: typeof GalerieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/frais': {
+      id: '/frais'
+      path: '/frais'
+      fullPath: '/frais'
+      preLoaderRoute: typeof FraisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/formations': {
       id: '/formations'
       path: '/formations'
       fullPath: '/formations'
       preLoaderRoute: typeof FormationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipe': {
+      id: '/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof EquipeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admissions': {
+      id: '/admissions'
+      path: '/admissions'
+      fullPath: '/admissions'
+      preLoaderRoute: typeof AdmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/a-propos': {
@@ -88,7 +198,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AProposRoute: AProposRoute,
+  AdmissionsRoute: AdmissionsRoute,
+  ContactRoute: ContactRoute,
+  EquipeRoute: EquipeRoute,
   FormationsRoute: FormationsRoute,
+  FraisRoute: FraisRoute,
+  GalerieRoute: GalerieRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
