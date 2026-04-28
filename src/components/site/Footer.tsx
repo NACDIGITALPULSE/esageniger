@@ -62,7 +62,17 @@ export function Footer() {
 
       <div className="border-t border-border">
         <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground sm:flex-row lg:px-8">
-          <div>© {new Date().getFullYear()} ESAGE. Tous droits réservés.</div>
+          <div className="text-center sm:text-left">
+            © {new Date().getFullYear()} ESAGE. Tous droits réservés. · Conçu par{" "}
+            <a
+              href="https://nacdigitalpulse.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-primary transition-colors hover:text-primary-glow hover:underline"
+            >
+              NAC DIGITAL PULSE
+            </a>
+          </div>
           <div>{ESAGE.tagline}</div>
         </div>
       </div>
