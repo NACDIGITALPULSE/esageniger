@@ -73,7 +73,11 @@ export function Footer() {
               NAC DIGITAL PULSE
             </a>
           </div>
-          <div>{ESAGE.tagline}</div>
+          <div className="flex items-center gap-3">
+            <span>{ESAGE.tagline}</span>
+            <span className="text-border">·</span>
+            <Link to="/admin/login" className="opacity-50 hover:text-primary hover:opacity-100">Admin</Link>
+          </div>
         </div>
       </div>
     </footer>
