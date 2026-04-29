@@ -2,34 +2,36 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Wallet, Image as ImageIcon, Users, Type, History } from "lucide-react";
+import { BookOpen, Wallet, Image as ImageIcon, Users, Type, History, Inbox } from "lucide-react";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
 });
 
 function AdminDashboard() {
-  const [counts, setCounts] = useState({ programs: 0, tuition: 0, gallery: 0, team: 0, texts: 0, audit: 0 });
+  const [counts, setCounts] = useState({ applications: 0, programs: 0, tuition: 0, gallery: 0, team: 0, texts: 0, audit: 0 });
 
   useEffect(() => {
     async function load() {
-      const tables = ["programs", "tuition_tiers", "gallery_items", "team_members", "site_texts", "audit_log"] as const;
+      const tables = ["applications", "programs", "tuition_tiers", "gallery_items", "team_members", "site_texts", "audit_log"] as const;
       const results = await Promise.all(
         tables.map((t) => supabase.from(t).select("*", { count: "exact", head: true }))
       );
       setCounts({
-        programs: results[0].count ?? 0,
-        tuition: results[1].count ?? 0,
-        gallery: results[2].count ?? 0,
-        team: results[3].count ?? 0,
-        texts: results[4].count ?? 0,
-        audit: results[5].count ?? 0,
+        applications: results[0].count ?? 0,
+        programs: results[1].count ?? 0,
+        tuition: results[2].count ?? 0,
+        gallery: results[3].count ?? 0,
+        team: results[4].count ?? 0,
+        texts: results[5].count ?? 0,
+        audit: results[6].count ?? 0,
       });
     }
     load();
   }, []);
 
   const cards = [
+    { to: "/admin/applications", label: "Inscriptions reçues", value: counts.applications, icon: Inbox },
     { to: "/admin/programs", label: "Programmes", value: counts.programs, icon: BookOpen },
     { to: "/admin/tuition", label: "Paliers de frais", value: counts.tuition, icon: Wallet },
     { to: "/admin/gallery", label: "Images de la galerie", value: counts.gallery, icon: ImageIcon },
