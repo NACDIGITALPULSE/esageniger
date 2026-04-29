@@ -203,7 +203,7 @@ function HomePage() {
           <Card className="border-border">
             <CardContent className="flex flex-col items-start gap-4 p-8">
               <Building2 className="h-10 w-10 text-primary" />
-              <h3 className="font-serif text-2xl font-bold">Visitez notre campus</h3>
+              <h3 className="font-serif text-2xl font-bold">Visitez notre École</h3>
               <p className="text-sm text-muted-foreground">
                 2ème rond-point Wadata, route Filingué (vers Jangorzo), Niamey.
               </p>
