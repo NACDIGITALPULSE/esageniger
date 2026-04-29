@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          message: string | null
+          phone: string
+          program_id: string | null
+          program_level: string | null
+          program_title: string | null
+          receipt_number: string
+          status: string
+          tuition_price: string | null
+          tuition_tier_id: string | null
+          tuition_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          message?: string | null
+          phone: string
+          program_id?: string | null
+          program_level?: string | null
+          program_title?: string | null
+          receipt_number?: string
+          status?: string
+          tuition_price?: string | null
+          tuition_tier_id?: string | null
+          tuition_title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string | null
+          phone?: string
+          program_id?: string | null
+          program_level?: string | null
+          program_title?: string | null
+          receipt_number?: string
+          status?: string
+          tuition_price?: string | null
+          tuition_tier_id?: string | null
+          tuition_title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_tuition_tier_id_fkey"
+            columns: ["tuition_tier_id"]
+            isOneToOne: false
+            referencedRelation: "tuition_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string

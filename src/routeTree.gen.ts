@@ -26,6 +26,7 @@ import { Route as AdminProgramsRouteImport } from './routes/admin.programs'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminGalleryRouteImport } from './routes/admin.gallery'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 
 const GalerieRoute = GalerieRouteImport.update({
   id: '/galerie',
@@ -112,6 +113,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/login': typeof AdminLoginRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/login': typeof AdminLoginRoute
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/login': typeof AdminLoginRoute
@@ -182,6 +191,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
     | '/admin/audit'
     | '/admin/gallery'
     | '/admin/login'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
     | '/admin/audit'
     | '/admin/gallery'
     | '/admin/login'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
     | '/admin/audit'
     | '/admin/gallery'
     | '/admin/login'
@@ -362,10 +374,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/applications': {
+      id: '/admin/applications'
+      path: '/applications'
+      fullPath: '/admin/applications'
+      preLoaderRoute: typeof AdminApplicationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminGalleryRoute: typeof AdminGalleryRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -377,6 +397,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminApplicationsRoute: AdminApplicationsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminGalleryRoute: AdminGalleryRoute,
   AdminLoginRoute: AdminLoginRoute,

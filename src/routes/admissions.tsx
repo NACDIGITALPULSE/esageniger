@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,22 +8,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { allPrograms, btsPrograms, licenceMasterPrograms } from "@/data/programs";
+import { supabase } from "@/integrations/supabase/client";
 import { whatsappLink, ESAGE } from "@/lib/contact";
-import { CheckCircle2, FileText, MessageCircle } from "lucide-react";
+import { downloadReceipt } from "@/lib/receipt-pdf";
+import { CheckCircle2, FileText, MessageCircle, Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
-const searchSchema = z.object({
-  programme: z.string().optional(),
-});
+const searchSchema = z.object({ programme: z.string().optional() });
 
 export const Route = createFileRoute("/admissions")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Admissions ESAGE — Inscrivez-vous en ligne" },
-      { name: "description", content: "Inscrivez-vous à ESAGE : pièces à fournir pour BTS, Licence et Master, et formulaire d'inscription rapide via WhatsApp." },
-      { property: "og:title", content: "Admissions — ESAGE" },
-      { property: "og:description", content: "Pièces à fournir et formulaire d'inscription rapide." },
+      { name: "description", content: "Inscrivez-vous à ESAGE : pièces à fournir pour BTS, Licence et Master, et formulaire d'inscription en ligne avec reçu PDF." },
     ],
   }),
   component: AdmissionsPage,
@@ -34,16 +32,51 @@ const formSchema = z.object({
   telephone: z.string().trim().min(6, "Téléphone requis").max(30),
   email: z.string().trim().email("Email invalide").max(150),
   programme: z.string().min(1, "Sélectionnez une filière"),
+  palier: z.string().optional(),
   message: z.string().trim().max(500).optional(),
 });
 
+type Program = { id: string; title: string; level: string };
+type Tier = { id: string; title: string; price: string };
+type Submitted = {
+  receipt_number: string;
+  full_name: string;
+  phone: string;
+  email: string;
+  program_title: string | null;
+  program_level: string | null;
+  tuition_title: string | null;
+  tuition_price: string | null;
+  message: string | null;
+  created_at: string;
+  status: string;
+};
+
 function AdmissionsPage() {
   const search = Route.useSearch();
-  const navigate = useNavigate();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [programme, setProgramme] = useState<string>(search.programme ?? "");
+  const [palier, setPalier] = useState<string>("");
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [tiers, setTiers] = useState<Tier[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState<Submitted | null>(null);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    (async () => {
+      const [{ data: p }, { data: t }] = await Promise.all([
+        supabase.from("programs").select("id,title,level,display_order,is_visible").eq("is_visible", true).order("display_order"),
+        supabase.from("tuition_tiers").select("id,title,price,display_order").order("display_order"),
+      ]);
+      setPrograms((p as Program[]) ?? []);
+      setTiers((t as Tier[]) ?? []);
+    })();
+  }, []);
+
+  const bts = programs.filter((p) => p.level === "BTS");
+  const lm = programs.filter((p) => p.level !== "BTS");
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const data = {
@@ -51,6 +84,7 @@ function AdmissionsPage() {
       telephone: String(fd.get("telephone") ?? ""),
       email: String(fd.get("email") ?? ""),
       programme,
+      palier,
       message: String(fd.get("message") ?? ""),
     };
     const parsed = formSchema.safeParse(data);
@@ -61,10 +95,39 @@ function AdmissionsPage() {
       return;
     }
     setErrors({});
-    const prog = allPrograms.find((p) => p.id === parsed.data.programme);
-    const text = `Bonjour ESAGE, je souhaite m'inscrire.\n\nNom : ${parsed.data.nom}\nTéléphone : ${parsed.data.telephone}\nEmail : ${parsed.data.email}\nFilière : ${prog ? `${prog.title} (${prog.level})` : parsed.data.programme}${parsed.data.message ? `\nMessage : ${parsed.data.message}` : ""}`;
-    window.open(whatsappLink(text), "_blank", "noopener,noreferrer");
-    navigate({ to: "/admissions" });
+    setSubmitting(true);
+    const prog = programs.find((p) => p.id === parsed.data.programme);
+    const tier = tiers.find((t) => t.id === parsed.data.palier);
+
+    const { data: inserted, error } = await supabase
+      .from("applications")
+      .insert({
+        full_name: parsed.data.nom,
+        phone: parsed.data.telephone,
+        email: parsed.data.email,
+        program_id: prog?.id ?? null,
+        program_title: prog?.title ?? null,
+        program_level: prog?.level ?? null,
+        tuition_tier_id: tier?.id ?? null,
+        tuition_title: tier?.title ?? null,
+        tuition_price: tier?.price ?? null,
+        message: parsed.data.message || null,
+      })
+      .select()
+      .single();
+    setSubmitting(false);
+    if (error || !inserted) {
+      toast.error("Erreur lors de l'envoi : " + (error?.message ?? "inconnue"));
+      return;
+    }
+    toast.success("Inscription enregistrée ! Téléchargez votre reçu.");
+    setSubmitted(inserted as Submitted);
+    // Auto download
+    try { await downloadReceipt(inserted as Submitted); } catch { /* ignore */ }
+  }
+
+  function buildWhatsappText(s: Submitted) {
+    return `Bonjour ESAGE, je viens d'effectuer mon inscription en ligne.\n\nReçu : ${s.receipt_number}\nNom : ${s.full_name}\nTéléphone : ${s.phone}\nEmail : ${s.email}\nFilière : ${s.program_title ?? "—"}${s.program_level ? ` (${s.program_level})` : ""}\nPalier : ${s.tuition_title ?? "—"}`;
   }
 
   return (
@@ -82,24 +145,8 @@ function AdmissionsPage() {
       <section className="container mx-auto px-4 py-20 lg:px-8">
         <div className="grid gap-8 md:grid-cols-2">
           {[
-            {
-              title: "Pièces à fournir — BTS",
-              items: [
-                "Acte de naissance légalisé",
-                "Copie légalisée du diplôme (BAC ou équivalent)",
-                "4 photos d'identité",
-                "4 enveloppes timbrées",
-              ],
-            },
-            {
-              title: "Pièces à fournir — Licence & Master",
-              items: [
-                "Copie légalisée du BTS / Licence / Master",
-                "Acte de naissance légalisé",
-                "4 photos d'identité",
-                "4 enveloppes timbrées",
-              ],
-            },
+            { title: "Pièces à fournir — BTS", items: ["Acte de naissance légalisé", "Copie légalisée du diplôme (BAC ou équivalent)", "4 photos d'identité", "4 enveloppes timbrées"] },
+            { title: "Pièces à fournir — Licence & Master", items: ["Copie légalisée du BTS / Licence / Master", "Acte de naissance légalisé", "4 photos d'identité", "4 enveloppes timbrées"] },
           ].map((b) => (
             <Card key={b.title} className="border-border">
               <CardContent className="p-8">
@@ -124,66 +171,97 @@ function AdmissionsPage() {
       <section className="bg-secondary/40 py-20">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="text-sm font-semibold uppercase tracking-widest text-primary">Inscription rapide</div>
+            <div className="text-sm font-semibold uppercase tracking-widest text-primary">Inscription en ligne</div>
             <h2 className="mt-3 font-serif text-3xl font-bold">Formulaire d'inscription</h2>
             <p className="mt-3 text-muted-foreground">
-              Remplissez le formulaire — vos informations seront envoyées à notre équipe via WhatsApp pour un suivi immédiat.
+              Vos informations sont enregistrées et un reçu PDF officiel ESAGE vous est délivré immédiatement.
             </p>
           </div>
 
-          <Card className="mx-auto mt-10 max-w-2xl border-border bg-background">
-            <CardContent className="p-8">
-              <form onSubmit={onSubmit} className="grid gap-5">
-                <div className="grid gap-2">
-                  <Label htmlFor="nom">Nom complet *</Label>
-                  <Input id="nom" name="nom" required placeholder="Ex. Aminata Diallo" />
-                  {errors.nom && <p className="text-xs text-destructive">{errors.nom}</p>}
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="telephone">Téléphone *</Label>
-                    <Input id="telephone" name="telephone" required placeholder="+227 ..." />
-                    {errors.telephone && <p className="text-xs text-destructive">{errors.telephone}</p>}
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input id="email" name="email" type="email" required placeholder="vous@exemple.com" />
-                    {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="programme">Filière souhaitée *</Label>
-                  <Select value={programme} onValueChange={setProgramme}>
-                    <SelectTrigger id="programme">
-                      <SelectValue placeholder="Sélectionnez une filière" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-80">
-                      <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">BTS d'État</div>
-                      {btsPrograms.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
-                      ))}
-                      <div className="mt-1 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Licence & Master</div>
-                      {licenceMasterPrograms.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.programme && <p className="text-xs text-destructive">{errors.programme}</p>}
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="message">Message (optionnel)</Label>
-                  <Textarea id="message" name="message" rows={4} placeholder="Précisez vos questions ou votre disponibilité..." />
-                </div>
-                <Button type="submit" size="lg" className="bg-[var(--whatsapp)] text-white hover:opacity-90">
-                  <MessageCircle className="mr-2 h-4 w-4" />
-                  Envoyer ma candidature via WhatsApp
-                </Button>
-                <p className="text-center text-xs text-muted-foreground">
-                  Vous pouvez aussi nous joindre directement au {ESAGE.phones[0]}
+          {submitted ? (
+            <Card className="mx-auto mt-10 max-w-2xl border-primary/30 bg-background">
+              <CardContent className="space-y-4 p-8 text-center">
+                <CheckCircle2 className="mx-auto h-14 w-14 text-primary" />
+                <h3 className="font-serif text-2xl font-bold">Inscription enregistrée</h3>
+                <p className="text-sm text-muted-foreground">
+                  Votre numéro de reçu : <span className="font-mono font-bold text-foreground">{submitted.receipt_number}</span>
                 </p>
-              </form>
-            </CardContent>
-          </Card>
+                <p className="text-sm text-muted-foreground">
+                  Notre équipe vous recontactera sous peu. Conservez votre reçu PDF.
+                </p>
+                <div className="flex flex-wrap justify-center gap-3 pt-2">
+                  <Button onClick={() => downloadReceipt(submitted)}>
+                    <Download className="mr-2 h-4 w-4" /> Télécharger le reçu PDF
+                  </Button>
+                  <Button asChild variant="outline" className="bg-[var(--whatsapp)] text-white hover:opacity-90">
+                    <a href={whatsappLink(buildWhatsappText(submitted))} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="mr-2 h-4 w-4" /> Notifier sur WhatsApp
+                    </a>
+                  </Button>
+                  <Button variant="ghost" onClick={() => { setSubmitted(null); setProgramme(""); setPalier(""); }}>
+                    Nouvelle inscription
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="mx-auto mt-10 max-w-2xl border-border bg-background">
+              <CardContent className="p-8">
+                <form onSubmit={onSubmit} className="grid gap-5">
+                  <div className="grid gap-2">
+                    <Label htmlFor="nom">Nom complet *</Label>
+                    <Input id="nom" name="nom" required placeholder="Ex. Aminata Diallo" />
+                    {errors.nom && <p className="text-xs text-destructive">{errors.nom}</p>}
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="telephone">Téléphone *</Label>
+                      <Input id="telephone" name="telephone" required placeholder="+227 ..." />
+                      {errors.telephone && <p className="text-xs text-destructive">{errors.telephone}</p>}
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="email">Email *</Label>
+                      <Input id="email" name="email" type="email" required placeholder="vous@exemple.com" />
+                      {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="programme">Filière souhaitée *</Label>
+                    <Select value={programme} onValueChange={setProgramme}>
+                      <SelectTrigger id="programme"><SelectValue placeholder="Sélectionnez une filière" /></SelectTrigger>
+                      <SelectContent className="max-h-80">
+                        {bts.length > 0 && <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">BTS d'État</div>}
+                        {bts.map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
+                        {lm.length > 0 && <div className="mt-1 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Licence & Master</div>}
+                        {lm.map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                    {errors.programme && <p className="text-xs text-destructive">{errors.programme}</p>}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="palier">Palier de frais (optionnel)</Label>
+                    <Select value={palier} onValueChange={setPalier}>
+                      <SelectTrigger id="palier"><SelectValue placeholder="Sélectionnez un palier" /></SelectTrigger>
+                      <SelectContent>
+                        {tiers.map((t) => (<SelectItem key={t.id} value={t.id}>{t.title} — {t.price} FCFA</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="message">Message (optionnel)</Label>
+                    <Textarea id="message" name="message" rows={4} placeholder="Précisez vos questions ou votre disponibilité..." />
+                  </div>
+                  <Button type="submit" size="lg" disabled={submitting}>
+                    {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                    Envoyer mon inscription et obtenir mon reçu
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Vous pouvez aussi nous joindre directement au {ESAGE.phones[0]}
+                  </p>
+                </form>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </section>
     </SiteLayout>
