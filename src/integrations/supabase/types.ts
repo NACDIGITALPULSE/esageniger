@@ -16,6 +16,9 @@ export type Database = {
     Tables: {
       applications: {
         Row: {
+          archive_year: number | null
+          archived: boolean
+          archived_at: string | null
           created_at: string
           email: string
           full_name: string
@@ -23,8 +26,11 @@ export type Database = {
           message: string | null
           phone: string
           program_id: string | null
+          program_id_2: string | null
           program_level: string | null
+          program_level_2: string | null
           program_title: string | null
+          program_title_2: string | null
           receipt_number: string
           status: string
           tuition_price: string | null
@@ -33,6 +39,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archive_year?: number | null
+          archived?: boolean
+          archived_at?: string | null
           created_at?: string
           email: string
           full_name: string
@@ -40,8 +49,11 @@ export type Database = {
           message?: string | null
           phone: string
           program_id?: string | null
+          program_id_2?: string | null
           program_level?: string | null
+          program_level_2?: string | null
           program_title?: string | null
+          program_title_2?: string | null
           receipt_number?: string
           status?: string
           tuition_price?: string | null
@@ -50,6 +62,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archive_year?: number | null
+          archived?: boolean
+          archived_at?: string | null
           created_at?: string
           email?: string
           full_name?: string
@@ -57,8 +72,11 @@ export type Database = {
           message?: string | null
           phone?: string
           program_id?: string | null
+          program_id_2?: string | null
           program_level?: string | null
+          program_level_2?: string | null
           program_title?: string | null
+          program_title_2?: string | null
           receipt_number?: string
           status?: string
           tuition_price?: string | null
@@ -113,6 +131,39 @@ export type Database = {
           id?: string
           user_email?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      faq_items: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string
+          display_order: number
+          id: string
+          is_visible: boolean
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          question?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -181,6 +232,36 @@ export type Database = {
           level?: string
           slug?: string
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_images: {
+        Row: {
+          alt_text: string | null
+          created_at: string
+          id: string
+          image_url: string
+          key: string
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          alt_text?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          key: string
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          key?: string
+          label?: string
           updated_at?: string
         }
         Relationships: []
