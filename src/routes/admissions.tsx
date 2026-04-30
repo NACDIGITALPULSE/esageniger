@@ -141,7 +141,8 @@ function AdmissionsPage() {
   }
 
   function buildWhatsappText(s: Submitted) {
-    return `Bonjour ESAGE, je viens d'effectuer mon inscription en ligne.\n\nReçu : ${s.receipt_number}\nNom : ${s.full_name}\nTéléphone : ${s.phone}\nEmail : ${s.email}\nFilière : ${s.program_title ?? "—"}${s.program_level ? ` (${s.program_level})` : ""}\nPalier : ${s.tuition_title ?? "—"}`;
+    const c2 = s.program_title_2 ? `\n2ème choix : ${s.program_title_2}${s.program_level_2 ? ` (${s.program_level_2})` : ""}` : "";
+    return `Bonjour ESAGE, je viens d'effectuer mon inscription en ligne.\n\nReçu : ${s.receipt_number}\nNom : ${s.full_name}\nTéléphone : ${s.phone}\nEmail : ${s.email}\n1er choix : ${s.program_title ?? "—"}${s.program_level ? ` (${s.program_level})` : ""}${c2}\nPalier : ${s.tuition_title ?? "—"}`;
   }
 
   return (
