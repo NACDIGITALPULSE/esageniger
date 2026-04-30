@@ -293,6 +293,12 @@ function AdmissionsPage() {
           )}
         </div>
       </section>
+
+      <FAQBlock
+        categories={["admissions", "frais", "pieces", "delais"]}
+        title="Vos questions sur l'inscription"
+        subtitle="Tout ce qu'il faut savoir avant de déposer votre dossier."
+      />
     </SiteLayout>
   );
 }
