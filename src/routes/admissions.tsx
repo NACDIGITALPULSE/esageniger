@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { FAQBlock } from "@/components/site/FAQBlock";
 import { supabase } from "@/integrations/supabase/client";
 import { whatsappLink, ESAGE } from "@/lib/contact";
 import { downloadReceipt } from "@/lib/receipt-pdf";
@@ -32,6 +33,7 @@ const formSchema = z.object({
   telephone: z.string().trim().min(6, "Téléphone requis").max(30),
   email: z.string().trim().email("Email invalide").max(150),
   programme: z.string().min(1, "Sélectionnez une filière"),
+  programme2: z.string().optional(),
   palier: z.string().optional(),
   message: z.string().trim().max(500).optional(),
 });
@@ -45,6 +47,8 @@ type Submitted = {
   email: string;
   program_title: string | null;
   program_level: string | null;
+  program_title_2: string | null;
+  program_level_2: string | null;
   tuition_title: string | null;
   tuition_price: string | null;
   message: string | null;
