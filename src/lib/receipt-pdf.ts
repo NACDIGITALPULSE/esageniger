@@ -8,6 +8,8 @@ export type ReceiptData = {
   email: string;
   program_title?: string | null;
   program_level?: string | null;
+  program_title_2?: string | null;
+  program_level_2?: string | null;
   tuition_title?: string | null;
   tuition_price?: string | null;
   message?: string | null;
@@ -110,8 +112,8 @@ export async function generateReceiptPDF(data: ReceiptData): Promise<jsPDF> {
   y += 24;
 
   const progRows: Array<[string, string]> = [
-    ["Filière", data.program_title || "—"],
-    ["Niveau", data.program_level || "—"],
+    ["1er choix", data.program_title ? `${data.program_title}${data.program_level ? ` (${data.program_level})` : ""}` : "—"],
+    ["2ème choix", data.program_title_2 ? `${data.program_title_2}${data.program_level_2 ? ` (${data.program_level_2})` : ""}` : "—"],
     ["Palier de frais", data.tuition_title || "—"],
     ["Montant", data.tuition_price ? `${data.tuition_price} FCFA` : "—"],
   ];

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as GalerieRouteImport } from './routes/galerie'
 import { Route as FraisRouteImport } from './routes/frais'
 import { Route as FormationsRouteImport } from './routes/formations'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdmissionsRouteImport } from './routes/admissions'
@@ -24,7 +25,9 @@ import { Route as AdminTextsRouteImport } from './routes/admin.texts'
 import { Route as AdminTeamRouteImport } from './routes/admin.team'
 import { Route as AdminProgramsRouteImport } from './routes/admin.programs'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminImagesRouteImport } from './routes/admin.images'
 import { Route as AdminGalleryRouteImport } from './routes/admin.gallery'
+import { Route as AdminFaqRouteImport } from './routes/admin.faq'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 
@@ -41,6 +44,11 @@ const FraisRoute = FraisRouteImport.update({
 const FormationsRoute = FormationsRouteImport.update({
   id: '/formations',
   path: '/formations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EquipeRoute = EquipeRouteImport.update({
@@ -103,9 +111,19 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminImagesRoute = AdminImagesRouteImport.update({
+  id: '/images',
+  path: '/images',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminGalleryRoute = AdminGalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFaqRoute = AdminFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
@@ -126,12 +144,15 @@ export interface FileRoutesByFullPath {
   '/admissions': typeof AdmissionsRoute
   '/contact': typeof ContactRoute
   '/equipe': typeof EquipeRoute
+  '/faq': typeof FaqRoute
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/faq': typeof AdminFaqRoute
   '/admin/gallery': typeof AdminGalleryRoute
+  '/admin/images': typeof AdminImagesRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/programs': typeof AdminProgramsRoute
   '/admin/team': typeof AdminTeamRoute
@@ -145,12 +166,15 @@ export interface FileRoutesByTo {
   '/admissions': typeof AdmissionsRoute
   '/contact': typeof ContactRoute
   '/equipe': typeof EquipeRoute
+  '/faq': typeof FaqRoute
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/faq': typeof AdminFaqRoute
   '/admin/gallery': typeof AdminGalleryRoute
+  '/admin/images': typeof AdminImagesRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/programs': typeof AdminProgramsRoute
   '/admin/team': typeof AdminTeamRoute
@@ -166,12 +190,15 @@ export interface FileRoutesById {
   '/admissions': typeof AdmissionsRoute
   '/contact': typeof ContactRoute
   '/equipe': typeof EquipeRoute
+  '/faq': typeof FaqRoute
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/faq': typeof AdminFaqRoute
   '/admin/gallery': typeof AdminGalleryRoute
+  '/admin/images': typeof AdminImagesRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/programs': typeof AdminProgramsRoute
   '/admin/team': typeof AdminTeamRoute
@@ -188,12 +215,15 @@ export interface FileRouteTypes {
     | '/admissions'
     | '/contact'
     | '/equipe'
+    | '/faq'
     | '/formations'
     | '/frais'
     | '/galerie'
     | '/admin/applications'
     | '/admin/audit'
+    | '/admin/faq'
     | '/admin/gallery'
+    | '/admin/images'
     | '/admin/login'
     | '/admin/programs'
     | '/admin/team'
@@ -207,12 +237,15 @@ export interface FileRouteTypes {
     | '/admissions'
     | '/contact'
     | '/equipe'
+    | '/faq'
     | '/formations'
     | '/frais'
     | '/galerie'
     | '/admin/applications'
     | '/admin/audit'
+    | '/admin/faq'
     | '/admin/gallery'
+    | '/admin/images'
     | '/admin/login'
     | '/admin/programs'
     | '/admin/team'
@@ -227,12 +260,15 @@ export interface FileRouteTypes {
     | '/admissions'
     | '/contact'
     | '/equipe'
+    | '/faq'
     | '/formations'
     | '/frais'
     | '/galerie'
     | '/admin/applications'
     | '/admin/audit'
+    | '/admin/faq'
     | '/admin/gallery'
+    | '/admin/images'
     | '/admin/login'
     | '/admin/programs'
     | '/admin/team'
@@ -248,6 +284,7 @@ export interface RootRouteChildren {
   AdmissionsRoute: typeof AdmissionsRoute
   ContactRoute: typeof ContactRoute
   EquipeRoute: typeof EquipeRoute
+  FaqRoute: typeof FaqRoute
   FormationsRoute: typeof FormationsRoute
   FraisRoute: typeof FraisRoute
   GalerieRoute: typeof GalerieRoute
@@ -274,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/formations'
       fullPath: '/formations'
       preLoaderRoute: typeof FormationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/equipe': {
@@ -360,11 +404,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/images': {
+      id: '/admin/images'
+      path: '/images'
+      fullPath: '/admin/images'
+      preLoaderRoute: typeof AdminImagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/gallery': {
       id: '/admin/gallery'
       path: '/gallery'
       fullPath: '/admin/gallery'
       preLoaderRoute: typeof AdminGalleryRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/faq': {
+      id: '/admin/faq'
+      path: '/faq'
+      fullPath: '/admin/faq'
+      preLoaderRoute: typeof AdminFaqRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/audit': {
@@ -387,7 +445,9 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminFaqRoute: typeof AdminFaqRoute
   AdminGalleryRoute: typeof AdminGalleryRoute
+  AdminImagesRoute: typeof AdminImagesRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminProgramsRoute: typeof AdminProgramsRoute
   AdminTeamRoute: typeof AdminTeamRoute
@@ -399,7 +459,9 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminApplicationsRoute: AdminApplicationsRoute,
   AdminAuditRoute: AdminAuditRoute,
+  AdminFaqRoute: AdminFaqRoute,
   AdminGalleryRoute: AdminGalleryRoute,
+  AdminImagesRoute: AdminImagesRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminProgramsRoute: AdminProgramsRoute,
   AdminTeamRoute: AdminTeamRoute,
@@ -417,6 +479,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdmissionsRoute: AdmissionsRoute,
   ContactRoute: ContactRoute,
   EquipeRoute: EquipeRoute,
+  FaqRoute: FaqRoute,
   FormationsRoute: FormationsRoute,
   FraisRoute: FraisRoute,
   GalerieRoute: GalerieRoute,
