@@ -212,7 +212,7 @@ function AdmissionsPage() {
                       <MessageCircle className="mr-2 h-4 w-4" /> Notifier sur WhatsApp
                     </a>
                   </Button>
-                  <Button variant="ghost" onClick={() => { setSubmitted(null); setProgramme(""); setPalier(""); }}>
+                  <Button variant="ghost" onClick={() => { setSubmitted(null); setProgramme(""); setProgramme2(""); setPalier(""); }}>
                     Nouvelle inscription
                   </Button>
                 </div>
@@ -240,9 +240,9 @@ function AdmissionsPage() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="programme">Filière souhaitée *</Label>
+                    <Label htmlFor="programme">Filière souhaitée — 1er choix *</Label>
                     <Select value={programme} onValueChange={setProgramme}>
-                      <SelectTrigger id="programme"><SelectValue placeholder="Sélectionnez une filière" /></SelectTrigger>
+                      <SelectTrigger id="programme"><SelectValue placeholder="Sélectionnez votre 1er choix" /></SelectTrigger>
                       <SelectContent className="max-h-80">
                         {bts.length > 0 && <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">BTS d'État</div>}
                         {bts.map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
@@ -251,6 +251,21 @@ function AdmissionsPage() {
                       </SelectContent>
                     </Select>
                     {errors.programme && <p className="text-xs text-destructive">{errors.programme}</p>}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="programme2">Filière souhaitée — 2ème choix (optionnel)</Label>
+                    <Select value={programme2} onValueChange={setProgramme2}>
+                      <SelectTrigger id="programme2"><SelectValue placeholder="Aucun second choix" /></SelectTrigger>
+                      <SelectContent className="max-h-80">
+                        <SelectItem value="__none__" onSelect={(e) => { e.preventDefault(); setProgramme2(""); }}>— Aucun —</SelectItem>
+                        {bts.length > 0 && <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">BTS d'État</div>}
+                        {bts.filter((p) => p.id !== programme).map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
+                        {lm.length > 0 && <div className="mt-1 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Licence & Master</div>}
+                        {lm.filter((p) => p.id !== programme).map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                    {errors.programme2 && <p className="text-xs text-destructive">{errors.programme2}</p>}
+                    <p className="text-[11px] text-muted-foreground">Indiquez une filière de secours si votre 1er choix n'est pas disponible.</p>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="palier">Palier de frais (optionnel)</Label>
