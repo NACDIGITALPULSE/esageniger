@@ -159,3 +159,10 @@ export async function downloadReceipt(data: ReceiptData) {
   const doc = await generateReceiptPDF(data);
   doc.save(`recu-${data.receipt_number}.pdf`);
 }
+
+export async function previewReceiptUrl(data: ReceiptData): Promise<string> {
+  const doc = await generateReceiptPDF(data);
+  const blob = doc.output("blob");
+  return URL.createObjectURL(blob);
+}
+
