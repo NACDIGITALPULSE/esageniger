@@ -15,12 +15,15 @@ export function useRealtimeTable<T = any>(
   useEffect(() => {
     let active = true;
 
-    async function load() {
-      const { data: rows } = await supabase.from(table).select("*").order(orderBy, { ascending: true });
-      if (active) {
-        setData((rows as T[]) ?? []);
-        setLoading(false);
+    async function load(retries = 3) {
+      const { data: rows, error } = await supabase.from(table).select("*").order(orderBy, { ascending: true });
+      if (!active) return;
+      if (error && retries > 0) {
+        setTimeout(() => load(retries - 1), 1500);
+        return;
       }
+      setData((rows as T[]) ?? []);
+      setLoading(false);
     }
     load();
 

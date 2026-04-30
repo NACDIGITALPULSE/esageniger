@@ -5,9 +5,9 @@ export const ESAGE = {
   subSlogan: "La réussite au bout de l'effort",
   tagline: "Notre choix, notre assurance en l'avenir",
   address: "2ème rond-point Wadata, route Filingué (vers Jangorzo), Niamey, Niger",
-  phones: ["+227 96 87 67 17"],
+  phones: ["+227 90 41 63 61"],
   email: "esageniger@hotmail.com",
-  whatsapp: "22796876717", // E.164 without +
+  whatsapp: "22790416361", // E.164 without +
 } as const;
 
 export function whatsappLink(message: string) {

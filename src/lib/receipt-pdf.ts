@@ -146,7 +146,7 @@ export async function generateReceiptPDF(data: ReceiptData): Promise<jsPDF> {
   doc.setFontSize(9);
   doc.setTextColor(100);
   doc.text("Conservez ce reçu — il atteste de votre demande d'inscription auprès d'ESAGE.", margin, footerY + 18);
-  doc.text("Pour toute question : +227 96 87 67 17 — esageniger@gmail.com", margin, footerY + 34);
+  doc.text("Pour toute question : +227 90 41 63 61 — esageniger@hotmail.com", margin, footerY + 34);
   doc.setFont("helvetica", "italic");
   doc.text("Document généré automatiquement par ESAGE", margin, footerY + 50);
 
