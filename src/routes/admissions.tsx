@@ -89,7 +89,7 @@ function AdmissionsPage() {
       telephone: String(fd.get("telephone") ?? ""),
       email: String(fd.get("email") ?? ""),
       programme,
-      programme2,
+      programme2: programme2 === "__none__" ? "" : programme2,
       palier,
       message: String(fd.get("message") ?? ""),
     };
@@ -257,7 +257,7 @@ function AdmissionsPage() {
                     <Select value={programme2} onValueChange={setProgramme2}>
                       <SelectTrigger id="programme2"><SelectValue placeholder="Aucun second choix" /></SelectTrigger>
                       <SelectContent className="max-h-80">
-                        <SelectItem value="__none__" onSelect={(e) => { e.preventDefault(); setProgramme2(""); }}>— Aucun —</SelectItem>
+                        <SelectItem value="__none__">— Aucun —</SelectItem>
                         {bts.length > 0 && <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">BTS d'État</div>}
                         {bts.filter((p) => p.id !== programme).map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
                         {lm.length > 0 && <div className="mt-1 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Licence & Master</div>}
