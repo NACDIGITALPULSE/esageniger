@@ -60,6 +60,7 @@ function AdmissionsPage() {
   const search = Route.useSearch();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [programme, setProgramme] = useState<string>(search.programme ?? "");
+  const [programme2, setProgramme2] = useState<string>("");
   const [palier, setPalier] = useState<string>("");
   const [programs, setPrograms] = useState<Program[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
@@ -88,6 +89,7 @@ function AdmissionsPage() {
       telephone: String(fd.get("telephone") ?? ""),
       email: String(fd.get("email") ?? ""),
       programme,
+      programme2,
       palier,
       message: String(fd.get("message") ?? ""),
     };
@@ -98,9 +100,14 @@ function AdmissionsPage() {
       setErrors(errs);
       return;
     }
+    if (parsed.data.programme2 && parsed.data.programme2 === parsed.data.programme) {
+      setErrors({ programme2: "Le 2ème choix doit être différent du 1er" });
+      return;
+    }
     setErrors({});
     setSubmitting(true);
     const prog = programs.find((p) => p.id === parsed.data.programme);
+    const prog2 = parsed.data.programme2 ? programs.find((p) => p.id === parsed.data.programme2) : undefined;
     const tier = tiers.find((t) => t.id === parsed.data.palier);
 
     const { data: inserted, error } = await supabase
@@ -112,6 +119,9 @@ function AdmissionsPage() {
         program_id: prog?.id ?? null,
         program_title: prog?.title ?? null,
         program_level: prog?.level ?? null,
+        program_id_2: prog2?.id ?? null,
+        program_title_2: prog2?.title ?? null,
+        program_level_2: prog2?.level ?? null,
         tuition_tier_id: tier?.id ?? null,
         tuition_title: tier?.title ?? null,
         tuition_price: tier?.price ?? null,
