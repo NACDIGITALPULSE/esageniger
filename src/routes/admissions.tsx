@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { FAQBlock } from "@/components/site/FAQBlock";
 import { supabase } from "@/integrations/supabase/client";
 import { whatsappLink, ESAGE } from "@/lib/contact";
 import { downloadReceipt } from "@/lib/receipt-pdf";
@@ -32,6 +33,7 @@ const formSchema = z.object({
   telephone: z.string().trim().min(6, "Téléphone requis").max(30),
   email: z.string().trim().email("Email invalide").max(150),
   programme: z.string().min(1, "Sélectionnez une filière"),
+  programme2: z.string().optional(),
   palier: z.string().optional(),
   message: z.string().trim().max(500).optional(),
 });
@@ -45,6 +47,8 @@ type Submitted = {
   email: string;
   program_title: string | null;
   program_level: string | null;
+  program_title_2: string | null;
+  program_level_2: string | null;
   tuition_title: string | null;
   tuition_price: string | null;
   message: string | null;
@@ -56,6 +60,7 @@ function AdmissionsPage() {
   const search = Route.useSearch();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [programme, setProgramme] = useState<string>(search.programme ?? "");
+  const [programme2, setProgramme2] = useState<string>("");
   const [palier, setPalier] = useState<string>("");
   const [programs, setPrograms] = useState<Program[]>([]);
   const [tiers, setTiers] = useState<Tier[]>([]);
@@ -84,6 +89,7 @@ function AdmissionsPage() {
       telephone: String(fd.get("telephone") ?? ""),
       email: String(fd.get("email") ?? ""),
       programme,
+      programme2: programme2 === "__none__" ? "" : programme2,
       palier,
       message: String(fd.get("message") ?? ""),
     };
@@ -94,9 +100,14 @@ function AdmissionsPage() {
       setErrors(errs);
       return;
     }
+    if (parsed.data.programme2 && parsed.data.programme2 === parsed.data.programme) {
+      setErrors({ programme2: "Le 2ème choix doit être différent du 1er" });
+      return;
+    }
     setErrors({});
     setSubmitting(true);
     const prog = programs.find((p) => p.id === parsed.data.programme);
+    const prog2 = parsed.data.programme2 ? programs.find((p) => p.id === parsed.data.programme2) : undefined;
     const tier = tiers.find((t) => t.id === parsed.data.palier);
 
     const { data: inserted, error } = await supabase
@@ -108,6 +119,9 @@ function AdmissionsPage() {
         program_id: prog?.id ?? null,
         program_title: prog?.title ?? null,
         program_level: prog?.level ?? null,
+        program_id_2: prog2?.id ?? null,
+        program_title_2: prog2?.title ?? null,
+        program_level_2: prog2?.level ?? null,
         tuition_tier_id: tier?.id ?? null,
         tuition_title: tier?.title ?? null,
         tuition_price: tier?.price ?? null,
@@ -127,7 +141,8 @@ function AdmissionsPage() {
   }
 
   function buildWhatsappText(s: Submitted) {
-    return `Bonjour ESAGE, je viens d'effectuer mon inscription en ligne.\n\nReçu : ${s.receipt_number}\nNom : ${s.full_name}\nTéléphone : ${s.phone}\nEmail : ${s.email}\nFilière : ${s.program_title ?? "—"}${s.program_level ? ` (${s.program_level})` : ""}\nPalier : ${s.tuition_title ?? "—"}`;
+    const c2 = s.program_title_2 ? `\n2ème choix : ${s.program_title_2}${s.program_level_2 ? ` (${s.program_level_2})` : ""}` : "";
+    return `Bonjour ESAGE, je viens d'effectuer mon inscription en ligne.\n\nReçu : ${s.receipt_number}\nNom : ${s.full_name}\nTéléphone : ${s.phone}\nEmail : ${s.email}\n1er choix : ${s.program_title ?? "—"}${s.program_level ? ` (${s.program_level})` : ""}${c2}\nPalier : ${s.tuition_title ?? "—"}`;
   }
 
   return (
@@ -198,7 +213,7 @@ function AdmissionsPage() {
                       <MessageCircle className="mr-2 h-4 w-4" /> Notifier sur WhatsApp
                     </a>
                   </Button>
-                  <Button variant="ghost" onClick={() => { setSubmitted(null); setProgramme(""); setPalier(""); }}>
+                  <Button variant="ghost" onClick={() => { setSubmitted(null); setProgramme(""); setProgramme2(""); setPalier(""); }}>
                     Nouvelle inscription
                   </Button>
                 </div>
@@ -226,9 +241,9 @@ function AdmissionsPage() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="programme">Filière souhaitée *</Label>
+                    <Label htmlFor="programme">Filière souhaitée — 1er choix *</Label>
                     <Select value={programme} onValueChange={setProgramme}>
-                      <SelectTrigger id="programme"><SelectValue placeholder="Sélectionnez une filière" /></SelectTrigger>
+                      <SelectTrigger id="programme"><SelectValue placeholder="Sélectionnez votre 1er choix" /></SelectTrigger>
                       <SelectContent className="max-h-80">
                         {bts.length > 0 && <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">BTS d'État</div>}
                         {bts.map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
@@ -237,6 +252,21 @@ function AdmissionsPage() {
                       </SelectContent>
                     </Select>
                     {errors.programme && <p className="text-xs text-destructive">{errors.programme}</p>}
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="programme2">Filière souhaitée — 2ème choix (optionnel)</Label>
+                    <Select value={programme2} onValueChange={setProgramme2}>
+                      <SelectTrigger id="programme2"><SelectValue placeholder="Aucun second choix" /></SelectTrigger>
+                      <SelectContent className="max-h-80">
+                        <SelectItem value="__none__">— Aucun —</SelectItem>
+                        {bts.length > 0 && <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">BTS d'État</div>}
+                        {bts.filter((p) => p.id !== programme).map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
+                        {lm.length > 0 && <div className="mt-1 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Licence & Master</div>}
+                        {lm.filter((p) => p.id !== programme).map((p) => (<SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                    {errors.programme2 && <p className="text-xs text-destructive">{errors.programme2}</p>}
+                    <p className="text-[11px] text-muted-foreground">Indiquez une filière de secours si votre 1er choix n'est pas disponible.</p>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="palier">Palier de frais (optionnel)</Label>
@@ -264,6 +294,12 @@ function AdmissionsPage() {
           )}
         </div>
       </section>
+
+      <FAQBlock
+        categories={["admissions", "frais", "pieces", "delais"]}
+        title="Vos questions sur l'inscription"
+        subtitle="Tout ce qu'il faut savoir avant de déposer votre dossier."
+      />
     </SiteLayout>
   );
 }

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAdminAuth } from "@/lib/admin-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, LayoutDashboard, BookOpen, Wallet, Image as ImageIcon, Users, Type, History, LogOut, ExternalLink, Inbox } from "lucide-react";
+import { Loader2, LayoutDashboard, BookOpen, Wallet, Image as ImageIcon, Users, Type, History, LogOut, ExternalLink, Inbox, HelpCircle, Images } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -18,8 +18,10 @@ const navItems: NavItem[] = [
   { to: "/admin/programs", label: "Programmes", icon: BookOpen },
   { to: "/admin/tuition", label: "Frais de scolarité", icon: Wallet },
   { to: "/admin/gallery", label: "Galerie", icon: ImageIcon },
+  { to: "/admin/images", label: "Images du site", icon: Images },
   { to: "/admin/team", label: "Équipe", icon: Users },
   { to: "/admin/texts", label: "Textes du site", icon: Type },
+  { to: "/admin/faq", label: "FAQ", icon: HelpCircle },
   { to: "/admin/audit", label: "Journal", icon: History },
 ];
 

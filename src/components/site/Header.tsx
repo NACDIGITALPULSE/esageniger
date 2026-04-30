@@ -12,6 +12,7 @@ const navItems = [
   { to: "/frais", label: "Frais" },
   { to: "/equipe", label: "Équipe" },
   { to: "/galerie", label: "Galerie" },
+  { to: "/faq", label: "FAQ" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
