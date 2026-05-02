@@ -2,18 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { CtaBand } from "@/components/site/CtaBand";
-import { GraduationCap, Loader2, User } from "lucide-react";
-import { useRealtimeTable } from "@/lib/use-realtime-table";
-
-type Member = {
-  id: string;
-  full_name: string;
-  role_title: string;
-  bio: string | null;
-  photo_url: string | null;
-  display_order: number;
-  is_visible: boolean;
-};
+import { GraduationCap, User } from "lucide-react";
+import { teamMembers } from "@/data/team";
 
 export const Route = createFileRoute("/equipe")({
   head: () => ({
@@ -28,9 +18,6 @@ export const Route = createFileRoute("/equipe")({
 });
 
 function TeamPage() {
-  const { data, loading } = useRealtimeTable<Member>("team_members");
-  const members = data.filter((m) => m.is_visible);
-
   return (
     <SiteLayout>
       <section className="bg-primary py-20 text-primary-foreground">
@@ -44,13 +31,11 @@ function TeamPage() {
       </section>
 
       <section className="container mx-auto px-4 py-20 lg:px-8">
-        {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : members.length === 0 ? (
+        {teamMembers.length === 0 ? (
           <p className="text-center text-muted-foreground">Équipe à venir.</p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {members.map((m) => (
+            {teamMembers.map((m) => (
               <Card key={m.id} className="overflow-hidden border-border hover-lift">
                 {m.photo_url ? (
                   <img src={m.photo_url} alt={m.full_name} loading="lazy" className="h-56 w-full object-cover" />

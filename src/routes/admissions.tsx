@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { FAQBlock } from "@/components/site/FAQBlock";
-import { supabase } from "@/integrations/supabase/client";
 import { whatsappLink, ESAGE } from "@/lib/contact";
 import { downloadReceipt } from "@/lib/receipt-pdf";
+import { allPrograms } from "@/data/programs";
+import { tuitionTiers } from "@/data/tuition";
 import { CheckCircle2, FileText, MessageCircle, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,8 +39,6 @@ const formSchema = z.object({
   message: z.string().trim().max(500).optional(),
 });
 
-type Program = { id: string; title: string; level: string };
-type Tier = { id: string; title: string; price: string };
 type Submitted = {
   receipt_number: string;
   full_name: string;
@@ -56,30 +55,26 @@ type Submitted = {
   status: string;
 };
 
+function generateReceiptNumber(): string {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `ESAGE-${yyyy}${mm}${dd}-${rand}`;
+}
+
 function AdmissionsPage() {
   const search = Route.useSearch();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [programme, setProgramme] = useState<string>(search.programme ?? "");
   const [programme2, setProgramme2] = useState<string>("");
   const [palier, setPalier] = useState<string>("");
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [tiers, setTiers] = useState<Tier[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<Submitted | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const [{ data: p }, { data: t }] = await Promise.all([
-        supabase.from("programs").select("id,title,level,display_order,is_visible").eq("is_visible", true).order("display_order"),
-        supabase.from("tuition_tiers").select("id,title,price,display_order").order("display_order"),
-      ]);
-      setPrograms((p as Program[]) ?? []);
-      setTiers((t as Tier[]) ?? []);
-    })();
-  }, []);
-
-  const bts = programs.filter((p) => p.level === "BTS");
-  const lm = programs.filter((p) => p.level !== "BTS");
+  const bts = allPrograms.filter((p) => p.level === "BTS");
+  const lm = allPrograms.filter((p) => p.level !== "BTS");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -106,43 +101,48 @@ function AdmissionsPage() {
     }
     setErrors({});
     setSubmitting(true);
-    const prog = programs.find((p) => p.id === parsed.data.programme);
-    const prog2 = parsed.data.programme2 ? programs.find((p) => p.id === parsed.data.programme2) : undefined;
-    const tier = tiers.find((t) => t.id === parsed.data.palier);
 
-    const { data: inserted, error } = await supabase
-      .from("applications")
-      .insert({
-        full_name: parsed.data.nom,
-        phone: parsed.data.telephone,
-        email: parsed.data.email,
-        program_id: prog?.id ?? null,
-        program_title: prog?.title ?? null,
-        program_level: prog?.level ?? null,
-        program_id_2: prog2?.id ?? null,
-        program_title_2: prog2?.title ?? null,
-        program_level_2: prog2?.level ?? null,
-        tuition_tier_id: tier?.id ?? null,
-        tuition_title: tier?.title ?? null,
-        tuition_price: tier?.price ?? null,
-        message: parsed.data.message || null,
-      })
-      .select()
-      .single();
-    setSubmitting(false);
-    if (error || !inserted) {
-      toast.error("Erreur lors de l'envoi : " + (error?.message ?? "inconnue"));
-      return;
+    const prog = allPrograms.find((p) => p.id === parsed.data.programme);
+    const prog2 = parsed.data.programme2 ? allPrograms.find((p) => p.id === parsed.data.programme2) : undefined;
+    const tier = tuitionTiers.find((t) => t.id === parsed.data.palier);
+
+    const inserted: Submitted = {
+      receipt_number: generateReceiptNumber(),
+      full_name: parsed.data.nom,
+      phone: parsed.data.telephone,
+      email: parsed.data.email,
+      program_title: prog?.title ?? null,
+      program_level: prog?.level ?? null,
+      program_title_2: prog2?.title ?? null,
+      program_level_2: prog2?.level ?? null,
+      tuition_title: tier?.title ?? null,
+      tuition_price: tier?.price ?? null,
+      message: parsed.data.message || null,
+      created_at: new Date().toISOString(),
+      status: "pending",
+    };
+
+    // Génération + téléchargement du reçu PDF
+    try {
+      await downloadReceipt(inserted);
+      toast.success("Reçu PDF téléchargé !");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de la génération du PDF");
     }
-    toast.success("Inscription enregistrée ! Téléchargez votre reçu.");
-    setSubmitted(inserted as Submitted);
-    // Auto download
-    try { await downloadReceipt(inserted as Submitted); } catch { /* ignore */ }
+
+    setSubmitting(false);
+    setSubmitted(inserted);
+
+    // Ouverture automatique de WhatsApp avec message pré-rempli
+    setTimeout(() => {
+      window.open(whatsappLink(buildWhatsappText(inserted)), "_blank", "noopener,noreferrer");
+    }, 800);
   }
 
   function buildWhatsappText(s: Submitted) {
     const c2 = s.program_title_2 ? `\n2ème choix : ${s.program_title_2}${s.program_level_2 ? ` (${s.program_level_2})` : ""}` : "";
-    return `Bonjour ESAGE, je viens d'effectuer mon inscription en ligne.\n\nReçu : ${s.receipt_number}\nNom : ${s.full_name}\nTéléphone : ${s.phone}\nEmail : ${s.email}\n1er choix : ${s.program_title ?? "—"}${s.program_level ? ` (${s.program_level})` : ""}${c2}\nPalier : ${s.tuition_title ?? "—"}`;
+    return `Bonjour ESAGE, je viens d'effectuer mon inscription en ligne.\n\nReçu : ${s.receipt_number}\nNom : ${s.full_name}\nTéléphone : ${s.phone}\nEmail : ${s.email}\n1er choix : ${s.program_title ?? "—"}${s.program_level ? ` (${s.program_level})` : ""}${c2}\nPalier : ${s.tuition_title ?? "—"}\n\nJe vous transmets également mon reçu PDF.`;
   }
 
   return (
@@ -189,7 +189,7 @@ function AdmissionsPage() {
             <div className="text-sm font-semibold uppercase tracking-widest text-primary">Inscription en ligne</div>
             <h2 className="mt-3 font-serif text-3xl font-bold">Formulaire d'inscription</h2>
             <p className="mt-3 text-muted-foreground">
-              Vos informations sont enregistrées et un reçu PDF officiel ESAGE vous est délivré immédiatement.
+              Remplissez le formulaire : votre reçu PDF se télécharge automatiquement et WhatsApp s'ouvre pour transmettre vos informations à ESAGE.
             </p>
           </div>
 
@@ -202,21 +202,25 @@ function AdmissionsPage() {
                   Votre numéro de reçu : <span className="font-mono font-bold text-foreground">{submitted.receipt_number}</span>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Notre équipe vous recontactera sous peu. Conservez votre reçu PDF.
+                  Votre reçu PDF a été téléchargé et WhatsApp s'est ouvert pour finaliser votre inscription.
+                  Si WhatsApp ne s'est pas ouvert, cliquez ci-dessous.
                 </p>
                 <div className="flex flex-wrap justify-center gap-3 pt-2">
                   <Button onClick={() => downloadReceipt(submitted)}>
-                    <Download className="mr-2 h-4 w-4" /> Télécharger le reçu PDF
+                    <Download className="mr-2 h-4 w-4" /> Re-télécharger le reçu PDF
                   </Button>
-                  <Button asChild variant="outline" className="bg-[var(--whatsapp)] text-white hover:opacity-90">
+                  <Button asChild className="bg-[var(--whatsapp)] text-white hover:opacity-90">
                     <a href={whatsappLink(buildWhatsappText(submitted))} target="_blank" rel="noopener noreferrer">
-                      <MessageCircle className="mr-2 h-4 w-4" /> Notifier sur WhatsApp
+                      <MessageCircle className="mr-2 h-4 w-4" /> Envoyer sur WhatsApp
                     </a>
                   </Button>
                   <Button variant="ghost" onClick={() => { setSubmitted(null); setProgramme(""); setProgramme2(""); setPalier(""); }}>
                     Nouvelle inscription
                   </Button>
                 </div>
+                <p className="pt-3 text-xs text-muted-foreground">
+                  Pensez à apporter votre reçu PDF imprimé lors de votre passage à l'école avec les pièces requises.
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -269,11 +273,11 @@ function AdmissionsPage() {
                     <p className="text-[11px] text-muted-foreground">Indiquez une filière de secours si votre 1er choix n'est pas disponible.</p>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="palier">Palier de frais (optionnel)</Label>
+                    <Label htmlFor="palier">Niveau de scolarité (optionnel)</Label>
                     <Select value={palier} onValueChange={setPalier}>
-                      <SelectTrigger id="palier"><SelectValue placeholder="Sélectionnez un palier" /></SelectTrigger>
+                      <SelectTrigger id="palier"><SelectValue placeholder="Sélectionnez un niveau" /></SelectTrigger>
                       <SelectContent>
-                        {tiers.map((t) => (<SelectItem key={t.id} value={t.id}>{t.title} — {t.price} FCFA</SelectItem>))}
+                        {tuitionTiers.map((t) => (<SelectItem key={t.id} value={t.id}>{t.title} — {t.price} FCFA</SelectItem>))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -283,10 +287,10 @@ function AdmissionsPage() {
                   </div>
                   <Button type="submit" size="lg" disabled={submitting}>
                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-                    Envoyer mon inscription et obtenir mon reçu
+                    Télécharger mon reçu et envoyer sur WhatsApp
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">
-                    Vous pouvez aussi nous joindre directement au {ESAGE.phones[0]}
+                    Vous pouvez aussi nous joindre directement au {ESAGE.phones[0]} ou par email à {ESAGE.email}
                   </p>
                 </form>
               </CardContent>
