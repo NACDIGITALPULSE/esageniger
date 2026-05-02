@@ -16,20 +16,8 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdmissionsRouteImport } from './routes/admissions'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AProposRouteImport } from './routes/a-propos'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminTuitionRouteImport } from './routes/admin.tuition'
-import { Route as AdminTextsRouteImport } from './routes/admin.texts'
-import { Route as AdminTeamRouteImport } from './routes/admin.team'
-import { Route as AdminProgramsRouteImport } from './routes/admin.programs'
-import { Route as AdminLoginRouteImport } from './routes/admin.login'
-import { Route as AdminImagesRouteImport } from './routes/admin.images'
-import { Route as AdminGalleryRouteImport } from './routes/admin.gallery'
-import { Route as AdminFaqRouteImport } from './routes/admin.faq'
-import { Route as AdminAuditRouteImport } from './routes/admin.audit'
-import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 
 const GalerieRoute = GalerieRouteImport.update({
   id: '/galerie',
@@ -66,11 +54,6 @@ const AdmissionsRoute = AdmissionsRouteImport.update({
   path: '/admissions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AProposRoute = AProposRouteImport.update({
   id: '/a-propos',
   path: '/a-propos',
@@ -81,66 +64,10 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTuitionRoute = AdminTuitionRouteImport.update({
-  id: '/tuition',
-  path: '/tuition',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTextsRoute = AdminTextsRouteImport.update({
-  id: '/texts',
-  path: '/texts',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTeamRoute = AdminTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProgramsRoute = AdminProgramsRouteImport.update({
-  id: '/programs',
-  path: '/programs',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminImagesRoute = AdminImagesRouteImport.update({
-  id: '/images',
-  path: '/images',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminGalleryRoute = AdminGalleryRouteImport.update({
-  id: '/gallery',
-  path: '/gallery',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminFaqRoute = AdminFaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAuditRoute = AdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
-  id: '/applications',
-  path: '/applications',
-  getParentRoute: () => AdminRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a-propos': typeof AProposRoute
-  '/admin': typeof AdminRouteWithChildren
   '/admissions': typeof AdmissionsRoute
   '/contact': typeof ContactRoute
   '/equipe': typeof EquipeRoute
@@ -148,17 +75,6 @@ export interface FileRoutesByFullPath {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
-  '/admin/applications': typeof AdminApplicationsRoute
-  '/admin/audit': typeof AdminAuditRoute
-  '/admin/faq': typeof AdminFaqRoute
-  '/admin/gallery': typeof AdminGalleryRoute
-  '/admin/images': typeof AdminImagesRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin/programs': typeof AdminProgramsRoute
-  '/admin/team': typeof AdminTeamRoute
-  '/admin/texts': typeof AdminTextsRoute
-  '/admin/tuition': typeof AdminTuitionRoute
-  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -170,23 +86,11 @@ export interface FileRoutesByTo {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
-  '/admin/applications': typeof AdminApplicationsRoute
-  '/admin/audit': typeof AdminAuditRoute
-  '/admin/faq': typeof AdminFaqRoute
-  '/admin/gallery': typeof AdminGalleryRoute
-  '/admin/images': typeof AdminImagesRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin/programs': typeof AdminProgramsRoute
-  '/admin/team': typeof AdminTeamRoute
-  '/admin/texts': typeof AdminTextsRoute
-  '/admin/tuition': typeof AdminTuitionRoute
-  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/a-propos': typeof AProposRoute
-  '/admin': typeof AdminRouteWithChildren
   '/admissions': typeof AdmissionsRoute
   '/contact': typeof ContactRoute
   '/equipe': typeof EquipeRoute
@@ -194,24 +98,12 @@ export interface FileRoutesById {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
-  '/admin/applications': typeof AdminApplicationsRoute
-  '/admin/audit': typeof AdminAuditRoute
-  '/admin/faq': typeof AdminFaqRoute
-  '/admin/gallery': typeof AdminGalleryRoute
-  '/admin/images': typeof AdminImagesRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/admin/programs': typeof AdminProgramsRoute
-  '/admin/team': typeof AdminTeamRoute
-  '/admin/texts': typeof AdminTextsRoute
-  '/admin/tuition': typeof AdminTuitionRoute
-  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/a-propos'
-    | '/admin'
     | '/admissions'
     | '/contact'
     | '/equipe'
@@ -219,17 +111,6 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
-    | '/admin/applications'
-    | '/admin/audit'
-    | '/admin/faq'
-    | '/admin/gallery'
-    | '/admin/images'
-    | '/admin/login'
-    | '/admin/programs'
-    | '/admin/team'
-    | '/admin/texts'
-    | '/admin/tuition'
-    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -241,22 +122,10 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
-    | '/admin/applications'
-    | '/admin/audit'
-    | '/admin/faq'
-    | '/admin/gallery'
-    | '/admin/images'
-    | '/admin/login'
-    | '/admin/programs'
-    | '/admin/team'
-    | '/admin/texts'
-    | '/admin/tuition'
-    | '/admin'
   id:
     | '__root__'
     | '/'
     | '/a-propos'
-    | '/admin'
     | '/admissions'
     | '/contact'
     | '/equipe'
@@ -264,23 +133,11 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
-    | '/admin/applications'
-    | '/admin/audit'
-    | '/admin/faq'
-    | '/admin/gallery'
-    | '/admin/images'
-    | '/admin/login'
-    | '/admin/programs'
-    | '/admin/team'
-    | '/admin/texts'
-    | '/admin/tuition'
-    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AProposRoute: typeof AProposRoute
-  AdminRoute: typeof AdminRouteWithChildren
   AdmissionsRoute: typeof AdmissionsRoute
   ContactRoute: typeof ContactRoute
   EquipeRoute: typeof EquipeRoute
@@ -341,13 +198,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/a-propos': {
       id: '/a-propos'
       path: '/a-propos'
@@ -362,120 +212,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/tuition': {
-      id: '/admin/tuition'
-      path: '/tuition'
-      fullPath: '/admin/tuition'
-      preLoaderRoute: typeof AdminTuitionRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/texts': {
-      id: '/admin/texts'
-      path: '/texts'
-      fullPath: '/admin/texts'
-      preLoaderRoute: typeof AdminTextsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/team': {
-      id: '/admin/team'
-      path: '/team'
-      fullPath: '/admin/team'
-      preLoaderRoute: typeof AdminTeamRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/programs': {
-      id: '/admin/programs'
-      path: '/programs'
-      fullPath: '/admin/programs'
-      preLoaderRoute: typeof AdminProgramsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/images': {
-      id: '/admin/images'
-      path: '/images'
-      fullPath: '/admin/images'
-      preLoaderRoute: typeof AdminImagesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/gallery': {
-      id: '/admin/gallery'
-      path: '/gallery'
-      fullPath: '/admin/gallery'
-      preLoaderRoute: typeof AdminGalleryRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/faq': {
-      id: '/admin/faq'
-      path: '/faq'
-      fullPath: '/admin/faq'
-      preLoaderRoute: typeof AdminFaqRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/audit': {
-      id: '/admin/audit'
-      path: '/audit'
-      fullPath: '/admin/audit'
-      preLoaderRoute: typeof AdminAuditRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/applications': {
-      id: '/admin/applications'
-      path: '/applications'
-      fullPath: '/admin/applications'
-      preLoaderRoute: typeof AdminApplicationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
   }
 }
-
-interface AdminRouteChildren {
-  AdminApplicationsRoute: typeof AdminApplicationsRoute
-  AdminAuditRoute: typeof AdminAuditRoute
-  AdminFaqRoute: typeof AdminFaqRoute
-  AdminGalleryRoute: typeof AdminGalleryRoute
-  AdminImagesRoute: typeof AdminImagesRoute
-  AdminLoginRoute: typeof AdminLoginRoute
-  AdminProgramsRoute: typeof AdminProgramsRoute
-  AdminTeamRoute: typeof AdminTeamRoute
-  AdminTextsRoute: typeof AdminTextsRoute
-  AdminTuitionRoute: typeof AdminTuitionRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminApplicationsRoute: AdminApplicationsRoute,
-  AdminAuditRoute: AdminAuditRoute,
-  AdminFaqRoute: AdminFaqRoute,
-  AdminGalleryRoute: AdminGalleryRoute,
-  AdminImagesRoute: AdminImagesRoute,
-  AdminLoginRoute: AdminLoginRoute,
-  AdminProgramsRoute: AdminProgramsRoute,
-  AdminTeamRoute: AdminTeamRoute,
-  AdminTextsRoute: AdminTextsRoute,
-  AdminTuitionRoute: AdminTuitionRoute,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AProposRoute: AProposRoute,
-  AdminRoute: AdminRouteWithChildren,
   AdmissionsRoute: AdmissionsRoute,
   ContactRoute: ContactRoute,
   EquipeRoute: EquipeRoute,
