@@ -3,17 +3,7 @@ import { useState } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { CtaBand } from "@/components/site/CtaBand";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
-import { useRealtimeTable } from "@/lib/use-realtime-table";
-
-type GalleryItem = {
-  id: string;
-  title: string | null;
-  caption: string | null;
-  image_url: string;
-  display_order: number;
-  is_visible: boolean;
-};
+import { galleryItems } from "@/data/gallery";
 
 export const Route = createFileRoute("/galerie")({
   head: () => ({
@@ -29,8 +19,6 @@ export const Route = createFileRoute("/galerie")({
 
 function GalleryPage() {
   const [open, setOpen] = useState<string | null>(null);
-  const { data, loading } = useRealtimeTable<GalleryItem>("gallery_items");
-  const photos = data.filter((p) => p.is_visible);
 
   return (
     <SiteLayout>
@@ -45,38 +33,32 @@ function GalleryPage() {
       </section>
 
       <section className="container mx-auto px-4 py-20 lg:px-8">
-        {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : photos.length === 0 ? (
-          <p className="text-center text-muted-foreground">Aucune image pour le moment.</p>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {photos.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setOpen(p.image_url)}
-                className="group relative overflow-hidden rounded-xl shadow-[var(--shadow-card)]"
-                aria-label={`Agrandir : ${p.title ?? "Photo"}`}
-              >
-                <img
-                  src={p.image_url}
-                  alt={p.title ?? p.caption ?? "Photo ESAGE"}
-                  loading="lazy"
-                  width={1280}
-                  height={896}
-                  className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-primary/0 transition-colors group-hover:bg-primary/30" />
-                {p.caption && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
-                    {p.caption}
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {galleryItems.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setOpen(p.image_url)}
+              className="group relative overflow-hidden rounded-xl shadow-[var(--shadow-card)]"
+              aria-label={`Agrandir : ${p.title}`}
+            >
+              <img
+                src={p.image_url}
+                alt={p.title}
+                loading="lazy"
+                width={1280}
+                height={896}
+                className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-primary/0 transition-colors group-hover:bg-primary/30" />
+              {p.caption && (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+                  {p.caption}
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
       </section>
 
       <Dialog open={!!open} onOpenChange={(v) => !v && setOpen(null)}>

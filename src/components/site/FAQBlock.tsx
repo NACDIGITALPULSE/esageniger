@@ -1,14 +1,6 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-
-type FaqItem = {
-  id: string;
-  category: string;
-  question: string;
-  answer: string;
-  display_order: number;
-};
+import { faqItems, type FaqItem } from "@/data/faq";
 
 const CATEGORY_LABELS: Record<string, string> = {
   admissions: "Admissions",
@@ -23,36 +15,20 @@ export function FAQBlock({ categories, title = "Questions fréquentes", subtitle
   title?: string;
   subtitle?: string;
 }) {
-  const [items, setItems] = useState<FaqItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      let q = supabase.from("faq_items").select("*").eq("is_visible", true).order("category").order("display_order");
-      const { data } = await q;
-      if (!mounted) return;
-      let list = (data as FaqItem[]) ?? [];
-      if (categories && categories.length > 0) list = list.filter((i) => categories.includes(i.category));
-      setItems(list);
-      setLoading(false);
+  const [items] = useState<FaqItem[]>(() => {
+    if (categories && categories.length > 0) {
+      return faqItems.filter((i) => categories.includes(i.category));
     }
-    load();
-    const ch = supabase
-      .channel("faq-public")
-      .on("postgres_changes", { event: "*", schema: "public", table: "faq_items" }, () => load())
-      .subscribe();
-    return () => { mounted = false; supabase.removeChannel(ch); };
-  }, [categories?.join(",")]);
+    return faqItems;
+  });
+
+  if (items.length === 0) return null;
 
   // Group by category
   const groups = items.reduce<Record<string, FaqItem[]>>((acc, it) => {
     (acc[it.category] = acc[it.category] ?? []).push(it);
     return acc;
   }, {});
-
-  if (loading) return null;
-  if (items.length === 0) return null;
 
   return (
     <section className="container mx-auto px-4 py-16 lg:px-8">

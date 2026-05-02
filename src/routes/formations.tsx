@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { CtaBand } from "@/components/site/CtaBand";
-import { ArrowRight, GraduationCap, BookOpen, Loader2 } from "lucide-react";
-import { useRealtimeTable } from "@/lib/use-realtime-table";
+import { ArrowRight, GraduationCap, BookOpen } from "lucide-react";
+import { btsPrograms, licenceMasterPrograms, type Program } from "@/data/programs";
 
 export const Route = createFileRoute("/formations")({
   head: () => ({
@@ -18,17 +18,7 @@ export const Route = createFileRoute("/formations")({
   component: ProgramsPage,
 });
 
-type DBProgram = {
-  id: string;
-  slug: string;
-  level: string;
-  title: string;
-  description: string;
-  display_order: number;
-  is_visible: boolean;
-};
-
-function ProgramCard({ p }: { p: DBProgram }) {
+function ProgramCard({ p }: { p: Program }) {
   return (
     <Card className="flex h-full flex-col border-border transition-all hover-lift">
       <CardContent className="flex flex-1 flex-col p-6">
@@ -39,7 +29,7 @@ function ProgramCard({ p }: { p: DBProgram }) {
         <h3 className="mt-4 font-serif text-lg font-bold leading-snug">{p.title}</h3>
         <p className="mt-2 flex-1 text-sm text-muted-foreground">{p.description}</p>
         <Button asChild variant="outline" size="sm" className="mt-5 w-fit">
-          <Link to="/admissions" search={{ programme: p.slug }}>
+          <Link to="/admissions" search={{ programme: p.id }}>
             Postuler <ArrowRight className="ml-1 h-3 w-3" />
           </Link>
         </Button>
@@ -49,11 +39,6 @@ function ProgramCard({ p }: { p: DBProgram }) {
 }
 
 function ProgramsPage() {
-  const { data, loading } = useRealtimeTable<DBProgram>("programs");
-  const visible = data.filter((p) => p.is_visible);
-  const bts = visible.filter((p) => p.level === "BTS");
-  const lm = visible.filter((p) => p.level !== "BTS");
-
   return (
     <SiteLayout>
       <section className="bg-primary py-20 text-primary-foreground">
@@ -66,39 +51,33 @@ function ProgramsPage() {
         </div>
       </section>
 
-      {loading ? (
-        <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-      ) : (
-        <>
-          <section className="container mx-auto px-4 py-20 lg:px-8">
-            <div className="mb-10 flex items-center gap-3">
-              <BookOpen className="h-7 w-7 text-primary" />
-              <div>
-                <h2 className="font-serif text-3xl font-bold">BTS d'État</h2>
-                <p className="text-sm text-muted-foreground">Brevet de Technicien Supérieur — 2 ans après le BAC</p>
-              </div>
-            </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {bts.map((p) => <ProgramCard key={p.id} p={p} />)}
-            </div>
-          </section>
+      <section className="container mx-auto px-4 py-20 lg:px-8">
+        <div className="mb-10 flex items-center gap-3">
+          <BookOpen className="h-7 w-7 text-primary" />
+          <div>
+            <h2 className="font-serif text-3xl font-bold">BTS d'État</h2>
+            <p className="text-sm text-muted-foreground">Brevet de Technicien Supérieur — 2 ans après le BAC</p>
+          </div>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {btsPrograms.map((p) => <ProgramCard key={p.id} p={p} />)}
+        </div>
+      </section>
 
-          <section className="bg-secondary/40 py-20">
-            <div className="container mx-auto px-4 lg:px-8">
-              <div className="mb-10 flex items-center gap-3">
-                <GraduationCap className="h-7 w-7 text-primary" />
-                <div>
-                  <h2 className="font-serif text-3xl font-bold">Licence & Master</h2>
-                  <p className="text-sm text-muted-foreground">Études supérieures spécialisées</p>
-                </div>
-              </div>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {lm.map((p) => <ProgramCard key={p.id} p={p} />)}
-              </div>
+      <section className="bg-secondary/40 py-20">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="mb-10 flex items-center gap-3">
+            <GraduationCap className="h-7 w-7 text-primary" />
+            <div>
+              <h2 className="font-serif text-3xl font-bold">Licence & Master</h2>
+              <p className="text-sm text-muted-foreground">Études supérieures spécialisées</p>
             </div>
-          </section>
-        </>
-      )}
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {licenceMasterPrograms.map((p) => <ProgramCard key={p.id} p={p} />)}
+          </div>
+        </div>
+      </section>
 
       <CtaBand title="Une filière vous intéresse ?" subtitle="Postulez en quelques minutes via notre formulaire d'inscription rapide." />
     </SiteLayout>
