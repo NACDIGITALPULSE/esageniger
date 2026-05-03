@@ -1,27 +1,33 @@
-# Routage SPA pour Hostinger / Apache
-# Si vous déployez sur Netlify/Vercel, le fichier _redirects (déjà présent dans public/) suffit.
-# Sur Hostinger (Apache), ce fichier .htaccess est obligatoire pour que les routes /formations, /admissions, etc.
-# fonctionnent quand l'utilisateur recharge la page ou ouvre un lien direct.
+# Routage pour Hostinger / Apache — site ESAGE pré-rendu
+# Chaque page (formations, admissions, etc.) existe déjà comme fichier .html
+# pré-rendu. Cette config :
+#   1. Sert les fichiers/dossiers existants tels quels (assets, images...)
+#   2. Sert /formations comme /formations.html, /admissions comme /admissions.html, etc.
+#   3. Tombe sur index.html en dernier recours (fallback SPA)
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # Si la requête correspond à un fichier ou dossier existant, on le sert directement
+  # Si le fichier ou dossier existe, on le sert directement
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Sinon, on redirige tout vers index.html (routage SPA TanStack)
+  # /formations → /formations.html (si le HTML pré-rendu existe)
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+
+  # Fallback : tout le reste vers index.html (SPA hydration)
   RewriteRule ^ index.html [L]
 </IfModule>
 
-# Compression Gzip pour accélérer le chargement
+# Compression Gzip
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
 </IfModule>
 
-# Cache des assets statiques (1 an pour les images, 1 mois pour CSS/JS)
+# Cache des assets statiques
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType image/jpeg "access plus 1 year"
@@ -33,5 +39,5 @@
   ExpiresByType text/html "access plus 0 seconds"
 </IfModule>
 
-# Sécurité — empêcher l'affichage du contenu des dossiers
+# Sécurité
 Options -Indexes
