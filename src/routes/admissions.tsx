@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,8 +13,9 @@ import { whatsappLink, ESAGE } from "@/lib/contact";
 import { downloadReceipt } from "@/lib/receipt-pdf";
 import { allPrograms } from "@/data/programs";
 import { tuitionTiers } from "@/data/tuition";
-import { CheckCircle2, FileText, MessageCircle, Download, Loader2 } from "lucide-react";
+import { CheckCircle2, FileText, MessageCircle, Download, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({ programme: z.string().optional() });
 
@@ -40,6 +41,7 @@ const formSchema = z.object({
 });
 
 type Submitted = {
+  id: string;
   receipt_number: string;
   full_name: string;
   phone: string;
@@ -53,6 +55,7 @@ type Submitted = {
   message: string | null;
   created_at: string;
   status: string;
+  whatsapp_sent: boolean;
 };
 
 function generateReceiptNumber(): string {
@@ -72,9 +75,28 @@ function AdmissionsPage() {
   const [palier, setPalier] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<Submitted | null>(null);
+  const [admissionsActive, setAdmissionsActive] = useState<boolean | null>(null);
+  const [confirmingWhatsapp, setConfirmingWhatsapp] = useState(false);
 
   const bts = allPrograms.filter((p) => p.level === "BTS");
   const lm = allPrograms.filter((p) => p.level !== "BTS");
+
+  useEffect(() => {
+    async function checkAdmissions() {
+      const { data, error } = await supabase
+        .from('site_config')
+        .select('value')
+        .eq('key', 'admissions_active')
+        .single();
+      
+      if (!error && data) {
+        setAdmissionsActive(data.value as boolean);
+      } else {
+        setAdmissionsActive(true);
+      }
+    }
+    checkAdmissions();
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -105,24 +127,55 @@ function AdmissionsPage() {
     const prog = allPrograms.find((p) => p.id === parsed.data.programme);
     const prog2 = parsed.data.programme2 ? allPrograms.find((p) => p.id === parsed.data.programme2) : undefined;
     const tier = tuitionTiers.find((t) => t.id === parsed.data.palier);
+    const receiptNumber = generateReceiptNumber();
+    
+    const { data: dbData, error: dbError } = await supabase
+      .from('applications')
+      .insert({
+        receipt_number: receiptNumber,
+        full_name: parsed.data.nom,
+        phone: parsed.data.telephone,
+        email: parsed.data.email,
+        program_id: parsed.data.programme,
+        program_id_2: parsed.data.programme2 || null,
+        program_title: prog?.title ?? null,
+        program_level: prog?.level ?? null,
+        program_title_2: prog2?.title ?? null,
+        program_level_2: prog2?.level ?? null,
+        tuition_tier_id: parsed.data.palier || null,
+        tuition_title: tier?.title ?? null,
+        tuition_price: tier?.price ?? null,
+        message: parsed.data.message || null,
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error(dbError);
+      toast.error("Erreur lors de l'enregistrement de l'inscription");
+      setSubmitting(false);
+      return;
+    }
 
     const inserted: Submitted = {
-      receipt_number: generateReceiptNumber(),
-      full_name: parsed.data.nom,
-      phone: parsed.data.telephone,
-      email: parsed.data.email,
-      program_title: prog?.title ?? null,
-      program_level: prog?.level ?? null,
-      program_title_2: prog2?.title ?? null,
-      program_level_2: prog2?.level ?? null,
-      tuition_title: tier?.title ?? null,
-      tuition_price: tier?.price ?? null,
-      message: parsed.data.message || null,
-      created_at: new Date().toISOString(),
-      status: "pending",
+      id: dbData.id,
+      receipt_number: dbData.receipt_number,
+      full_name: dbData.full_name,
+      phone: dbData.phone,
+      email: dbData.email,
+      program_title: dbData.program_title,
+      program_level: dbData.program_level as any,
+      program_title_2: dbData.program_title_2,
+      program_level_2: dbData.program_level_2 as any,
+      tuition_title: dbData.tuition_title,
+      tuition_price: dbData.tuition_price,
+      message: dbData.message,
+      created_at: dbData.created_at,
+      status: dbData.status,
+      whatsapp_sent: false,
     };
 
-    // Génération + téléchargement du reçu PDF
     try {
       await downloadReceipt(inserted);
       toast.success("Reçu PDF téléchargé !");
@@ -134,10 +187,29 @@ function AdmissionsPage() {
     setSubmitting(false);
     setSubmitted(inserted);
 
-    // Ouverture automatique de WhatsApp avec message pré-rempli
     setTimeout(() => {
       window.open(whatsappLink(buildWhatsappText(inserted)), "_blank", "noopener,noreferrer");
     }, 800);
+  }
+
+  async function confirmWhatsappSent() {
+    if (!submitted) return;
+    setConfirmingWhatsapp(true);
+    const { error } = await supabase
+      .from('applications')
+      .update({ 
+        whatsapp_sent: true,
+        whatsapp_sent_at: new Date().toISOString()
+      })
+      .eq('id', submitted.id);
+
+    if (error) {
+      toast.error("Erreur lors de la confirmation");
+    } else {
+      setSubmitted({ ...submitted, whatsapp_sent: true });
+      toast.success("Message WhatsApp confirmé !");
+    }
+    setConfirmingWhatsapp(false);
   }
 
   function buildWhatsappText(s: Submitted) {
@@ -196,37 +268,80 @@ function AdmissionsPage() {
           {submitted ? (
             <Card className="mx-auto mt-10 max-w-2xl border-primary/30 bg-background">
               <CardContent className="space-y-4 p-8 text-center">
-                <CheckCircle2 className="mx-auto h-14 w-14 text-primary" />
-                <h3 className="font-serif text-2xl font-bold">Inscription enregistrée</h3>
+                {submitted.whatsapp_sent ? (
+                  <CheckCircle2 className="mx-auto h-14 w-14 text-green-500" />
+                ) : (
+                  <MessageCircle className="mx-auto h-14 w-14 text-[var(--whatsapp)] animate-pulse" />
+                )}
+                <h3 className="font-serif text-2xl font-bold">
+                  {submitted.whatsapp_sent ? "Inscription Finalisée" : "Une dernière étape !"}
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   Votre numéro de reçu : <span className="font-mono font-bold text-foreground">{submitted.receipt_number}</span>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Votre reçu PDF a été téléchargé et WhatsApp s'est ouvert pour finaliser votre inscription.
-                  Si WhatsApp ne s'est pas ouvert, cliquez ci-dessous.
+                  {submitted.whatsapp_sent 
+                    ? "Nous avons bien noté que vous avez envoyé votre message. Notre équipe reviendra vers vous très prochainement."
+                    : "Votre reçu PDF est prêt. Pour valider votre inscription, vous devez nous envoyer ce message sur WhatsApp."}
                 </p>
-                <div className="flex flex-wrap justify-center gap-3 pt-2">
-                  <Button onClick={() => downloadReceipt(submitted)}>
-                    <Download className="mr-2 h-4 w-4" /> Re-télécharger le reçu PDF
+                
+                {!submitted.whatsapp_sent && (
+                  <div className="mt-6 rounded-lg bg-[var(--whatsapp)]/10 p-4 border border-[var(--whatsapp)]/20">
+                    <p className="mb-4 text-sm font-medium text-[var(--whatsapp)]">
+                      Avez-vous bien envoyé le message sur WhatsApp ?
+                    </p>
+                    <Button 
+                      onClick={confirmWhatsappSent} 
+                      disabled={confirmingWhatsapp}
+                      className="bg-[var(--whatsapp)] text-white hover:opacity-90 w-full sm:w-auto"
+                    >
+                      {confirmingWhatsapp ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                      Oui, j'ai envoyé mon message
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap justify-center gap-3 pt-4">
+                  <Button variant="outline" onClick={() => downloadReceipt(submitted)}>
+                    <Download className="mr-2 h-4 w-4" /> Télécharger à nouveau
                   </Button>
-                  <Button asChild className="bg-[var(--whatsapp)] text-white hover:opacity-90">
+                  <Button asChild variant="ghost" className="text-[var(--whatsapp)]">
                     <a href={whatsappLink(buildWhatsappText(submitted))} target="_blank" rel="noopener noreferrer">
-                      <MessageCircle className="mr-2 h-4 w-4" /> Envoyer sur WhatsApp
+                      <MessageCircle className="mr-2 h-4 w-4" /> Relancer WhatsApp
                     </a>
                   </Button>
-                  <Button variant="ghost" onClick={() => { setSubmitted(null); setProgramme(""); setProgramme2(""); setPalier(""); }}>
-                    Nouvelle inscription
+                </div>
+                
+                <Button variant="link" className="mt-4" onClick={() => { setSubmitted(null); setProgramme(""); setProgramme2(""); setPalier(""); }}>
+                  Nouvelle inscription
+                </Button>
+              </CardContent>
+            </Card>
+          ) : admissionsActive === false ? (
+            <Card className="mx-auto mt-10 max-w-2xl border-amber-200 bg-amber-50">
+              <CardContent className="p-12 text-center space-y-4">
+                <AlertCircle className="mx-auto h-16 w-16 text-amber-500" />
+                <h3 className="font-serif text-3xl font-bold text-amber-900">Admissions suspendues</h3>
+                <p className="text-amber-800">
+                  Les inscriptions en ligne sont actuellement fermées pour la session en cours. 
+                  Veuillez contacter l'administration pour plus d'informations.
+                </p>
+                <div className="pt-4">
+                  <Button asChild className="bg-amber-600 hover:bg-amber-700">
+                    <Link to="/contact">Contacter l'école</Link>
                   </Button>
                 </div>
-                <p className="pt-3 text-xs text-muted-foreground">
-                  Pensez à apporter votre reçu PDF imprimé lors de votre passage à l'école avec les pièces requises.
-                </p>
               </CardContent>
             </Card>
           ) : (
             <Card className="mx-auto mt-10 max-w-2xl border-border bg-background">
               <CardContent className="p-8">
-                <form onSubmit={onSubmit} className="grid gap-5">
+                {admissionsActive === null && (
+                  <div className="flex items-center justify-center py-10">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                )}
+                <form onSubmit={onSubmit} className={`grid gap-5 ${admissionsActive === null ? 'opacity-0' : 'opacity-100 transition-opacity'}`}>
                   <div className="grid gap-2">
                     <Label htmlFor="nom">Nom complet *</Label>
                     <Input id="nom" name="nom" required placeholder="Ex. Aminata Diallo" />

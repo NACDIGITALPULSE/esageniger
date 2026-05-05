@@ -30,7 +30,7 @@ function AboutPage() {
               Former les leaders de demain en administration et gestion
             </h1>
             <p className="mt-4 text-lg text-primary-foreground/90">
-              Depuis plus de 20 ans, ESAGE accompagne les étudiants et professionnels du Niger vers la réussite.
+              Depuis plus de 15 ans, ESAGE accompagne les étudiants et professionnels du Niger vers la réussite.
             </p>
           </div>
         </div>

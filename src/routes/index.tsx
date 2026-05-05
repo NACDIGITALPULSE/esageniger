@@ -44,7 +44,7 @@ function HomePage() {
           <div className="max-w-3xl text-primary-foreground">
             <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 backdrop-blur animate-fade-in">
               <img src={logo} alt="" width={28} height={28} className="h-7 w-7 rounded" />
-              <span className="text-xs font-medium uppercase tracking-wider">École Supérieure depuis 20 ans</span>
+              <span className="text-xs font-medium uppercase tracking-wider">École Supérieure depuis 15 ans</span>
             </div>
             <h1 className="font-serif text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl animate-fade-in-up">
               Travail – Rigueur – Succès
@@ -148,7 +148,7 @@ function HomePage() {
       <section className="container mx-auto px-4 py-20 lg:px-8">
         <div className="grid gap-8 rounded-2xl bg-[image:var(--gradient-primary)] p-10 text-primary-foreground shadow-[var(--shadow-elegant)] sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { value: "20+", label: "Années d'expérience" },
+            { value: "15+", label: "Années d'expérience" },
             { value: "15+", label: "Filières proposées" },
             { value: "1000+", label: "Étudiants formés" },
             { value: "3", label: "Niveaux : BTS, Licence, Master" },

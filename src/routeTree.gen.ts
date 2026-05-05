@@ -16,8 +16,12 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdmissionsRouteImport } from './routes/admissions'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AProposRouteImport } from './routes/a-propos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 
 const GalerieRoute = GalerieRouteImport.update({
   id: '/galerie',
@@ -54,6 +58,11 @@ const AdmissionsRoute = AdmissionsRouteImport.update({
   path: '/admissions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AProposRoute = AProposRouteImport.update({
   id: '/a-propos',
   path: '/a-propos',
@@ -64,10 +73,26 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a-propos': typeof AProposRoute
+  '/admin': typeof AdminRouteWithChildren
   '/admissions': typeof AdmissionsRoute
   '/contact': typeof ContactRoute
   '/equipe': typeof EquipeRoute
@@ -75,6 +100,9 @@ export interface FileRoutesByFullPath {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,11 +114,15 @@ export interface FileRoutesByTo {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/a-propos': typeof AProposRoute
+  '/admin': typeof AdminRouteWithChildren
   '/admissions': typeof AdmissionsRoute
   '/contact': typeof ContactRoute
   '/equipe': typeof EquipeRoute
@@ -98,12 +130,16 @@ export interface FileRoutesById {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/a-propos'
+    | '/admin'
     | '/admissions'
     | '/contact'
     | '/equipe'
@@ -111,6 +147,9 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
+    | '/admin/login'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,10 +161,14 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
+    | '/admin/login'
+    | '/admin'
   id:
     | '__root__'
     | '/'
     | '/a-propos'
+    | '/admin'
     | '/admissions'
     | '/contact'
     | '/equipe'
@@ -133,11 +176,15 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
+    | '/admin/login'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AProposRoute: typeof AProposRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AdmissionsRoute: typeof AdmissionsRoute
   ContactRoute: typeof ContactRoute
   EquipeRoute: typeof EquipeRoute
@@ -198,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/a-propos': {
       id: '/a-propos'
       path: '/a-propos'
@@ -212,12 +266,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/applications': {
+      id: '/admin/applications'
+      path: '/applications'
+      fullPath: '/admin/applications'
+      preLoaderRoute: typeof AdminApplicationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminApplicationsRoute: typeof AdminApplicationsRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminApplicationsRoute: AdminApplicationsRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AProposRoute: AProposRoute,
+  AdminRoute: AdminRouteWithChildren,
   AdmissionsRoute: AdmissionsRoute,
   ContactRoute: ContactRoute,
   EquipeRoute: EquipeRoute,
