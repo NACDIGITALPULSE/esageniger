@@ -37,6 +37,8 @@ export type Database = {
           tuition_tier_id: string | null
           tuition_title: string | null
           updated_at: string
+          whatsapp_sent: boolean | null
+          whatsapp_sent_at: string | null
         }
         Insert: {
           archive_year?: number | null
@@ -60,6 +62,8 @@ export type Database = {
           tuition_tier_id?: string | null
           tuition_title?: string | null
           updated_at?: string
+          whatsapp_sent?: boolean | null
+          whatsapp_sent_at?: string | null
         }
         Update: {
           archive_year?: number | null
@@ -83,6 +87,8 @@ export type Database = {
           tuition_tier_id?: string | null
           tuition_title?: string | null
           updated_at?: string
+          whatsapp_sent?: boolean | null
+          whatsapp_sent_at?: string | null
         }
         Relationships: [
           {
@@ -233,6 +239,27 @@ export type Database = {
           slug?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      site_config: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
         }
         Relationships: []
       }
