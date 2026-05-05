@@ -21,6 +21,7 @@ import { Route as AProposRouteImport } from './routes/a-propos'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 
 const GalerieRoute = GalerieRouteImport.update({
   id: '/galerie',
@@ -82,6 +83,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/formations': typeof FormationsRoute
   '/frais': typeof FraisRoute
   '/galerie': typeof GalerieRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
     | '/admin/login'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
     | '/admin/login'
     | '/admin'
   id:
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/frais'
     | '/galerie'
+    | '/admin/applications'
     | '/admin/login'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -268,15 +280,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/applications': {
+      id: '/admin/applications'
+      path: '/applications'
+      fullPath: '/admin/applications'
+      preLoaderRoute: typeof AdminApplicationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminApplicationsRoute: AdminApplicationsRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
