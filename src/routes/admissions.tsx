@@ -75,9 +75,28 @@ function AdmissionsPage() {
   const [palier, setPalier] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<Submitted | null>(null);
+  const [admissionsActive, setAdmissionsActive] = useState<boolean | null>(null);
+  const [confirmingWhatsapp, setConfirmingWhatsapp] = useState(false);
 
   const bts = allPrograms.filter((p) => p.level === "BTS");
   const lm = allPrograms.filter((p) => p.level !== "BTS");
+
+  useEffect(() => {
+    async function checkAdmissions() {
+      const { data, error } = await supabase
+        .from('site_config')
+        .select('value')
+        .eq('key', 'admissions_active')
+        .single();
+      
+      if (!error && data) {
+        setAdmissionsActive(data.value as boolean);
+      } else {
+        setAdmissionsActive(true); // Default to active if error
+      }
+    }
+    checkAdmissions();
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -109,20 +128,54 @@ function AdmissionsPage() {
     const prog2 = parsed.data.programme2 ? allPrograms.find((p) => p.id === parsed.data.programme2) : undefined;
     const tier = tuitionTiers.find((t) => t.id === parsed.data.palier);
 
+    const receiptNumber = generateReceiptNumber();
+    
+    // Save to Supabase
+    const { data: dbData, error: dbError } = await supabase
+      .from('applications')
+      .insert({
+        receipt_number: receiptNumber,
+        full_name: parsed.data.nom,
+        phone: parsed.data.telephone,
+        email: parsed.data.email,
+        program_id: parsed.data.programme,
+        program_id_2: parsed.data.programme2 || null,
+        program_title: prog?.title ?? null,
+        program_level: prog?.level ?? null,
+        program_title_2: prog2?.title ?? null,
+        program_level_2: prog2?.level ?? null,
+        tuition_tier_id: parsed.data.palier || null,
+        tuition_title: tier?.title ?? null,
+        tuition_price: tier?.price ?? null,
+        message: parsed.data.message || null,
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error(dbError);
+      toast.error("Erreur lors de l'enregistrement de l'inscription");
+      setSubmitting(false);
+      return;
+    }
+
     const inserted: Submitted = {
-      receipt_number: generateReceiptNumber(),
-      full_name: parsed.data.nom,
-      phone: parsed.data.telephone,
-      email: parsed.data.email,
-      program_title: prog?.title ?? null,
-      program_level: prog?.level ?? null,
-      program_title_2: prog2?.title ?? null,
-      program_level_2: prog2?.level ?? null,
-      tuition_title: tier?.title ?? null,
-      tuition_price: tier?.price ?? null,
-      message: parsed.data.message || null,
-      created_at: new Date().toISOString(),
-      status: "pending",
+      id: dbData.id,
+      receipt_number: dbData.receipt_number,
+      full_name: dbData.full_name,
+      phone: dbData.phone,
+      email: dbData.email,
+      program_title: dbData.program_title,
+      program_level: dbData.program_level as any,
+      program_title_2: dbData.program_title_2,
+      program_level_2: dbData.program_level_2 as any,
+      tuition_title: dbData.tuition_title,
+      tuition_price: dbData.tuition_price,
+      message: dbData.message,
+      created_at: dbData.created_at,
+      status: dbData.status,
+      whatsapp_sent: false,
     };
 
     // Génération + téléchargement du reçu PDF
@@ -141,6 +194,26 @@ function AdmissionsPage() {
     setTimeout(() => {
       window.open(whatsappLink(buildWhatsappText(inserted)), "_blank", "noopener,noreferrer");
     }, 800);
+  }
+
+  async function confirmWhatsappSent() {
+    if (!submitted) return;
+    setConfirmingWhatsapp(true);
+    const { error } = await supabase
+      .from('applications')
+      .update({ 
+        whatsapp_sent: true,
+        whatsapp_sent_at: new Date().toISOString()
+      })
+      .eq('id', submitted.id);
+
+    if (error) {
+      toast.error("Erreur lors de la confirmation");
+    } else {
+      setSubmitted({ ...submitted, whatsapp_sent: true });
+      toast.success("Message WhatsApp confirmé !");
+    }
+    setConfirmingWhatsapp(false);
   }
 
   function buildWhatsappText(s: Submitted) {
