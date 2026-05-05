@@ -47,6 +47,9 @@ const routes = [
   { url: "/formations", file: "formations.html" },
   { url: "/frais", file: "frais.html" },
   { url: "/galerie", file: "galerie.html" },
+  { url: "/admin", file: "admin.html" },
+  { url: "/admin/applications", file: "admin/applications.html" },
+  { url: "/admin/login", file: "admin/login.html" },
 ];
 
 const ctx = { waitUntil: () => {}, passThroughOnException: () => {} };
