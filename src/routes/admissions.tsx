@@ -41,6 +41,7 @@ const formSchema = z.object({
 });
 
 type Submitted = {
+  id: string;
   receipt_number: string;
   full_name: string;
   phone: string;
@@ -54,6 +55,7 @@ type Submitted = {
   message: string | null;
   created_at: string;
   status: string;
+  whatsapp_sent: boolean;
 };
 
 function generateReceiptNumber(): string {
