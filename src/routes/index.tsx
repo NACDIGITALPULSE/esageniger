@@ -148,7 +148,7 @@ function HomePage() {
       <section className="container mx-auto px-4 py-20 lg:px-8">
         <div className="grid gap-8 rounded-2xl bg-[image:var(--gradient-primary)] p-10 text-primary-foreground shadow-[var(--shadow-elegant)] sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { value: "20+", label: "Années d'expérience" },
+            { value: "15+", label: "Années d'expérience" },
             { value: "15+", label: "Filières proposées" },
             { value: "1000+", label: "Étudiants formés" },
             { value: "3", label: "Niveaux : BTS, Licence, Master" },
