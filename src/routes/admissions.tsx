@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,8 +13,9 @@ import { whatsappLink, ESAGE } from "@/lib/contact";
 import { downloadReceipt } from "@/lib/receipt-pdf";
 import { allPrograms } from "@/data/programs";
 import { tuitionTiers } from "@/data/tuition";
-import { CheckCircle2, FileText, MessageCircle, Download, Loader2 } from "lucide-react";
+import { CheckCircle2, FileText, MessageCircle, Download, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({ programme: z.string().optional() });
 
