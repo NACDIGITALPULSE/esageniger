@@ -124,12 +124,33 @@ function AdmissionsPage() {
     setErrors({});
     setSubmitting(true);
 
+    const whatsappWindow = typeof window !== "undefined" ? window.open("about:blank", "_blank") : null;
+
     const prog = allPrograms.find((p) => p.id === parsed.data.programme);
     const prog2 = parsed.data.programme2 ? allPrograms.find((p) => p.id === parsed.data.programme2) : undefined;
     const tier = tuitionTiers.find((t) => t.id === parsed.data.palier);
     const receiptNumber = generateReceiptNumber();
+    const createdAt = new Date().toISOString();
+
+    const inserted: Submitted = {
+      id: crypto.randomUUID(),
+      receipt_number: receiptNumber,
+      full_name: parsed.data.nom,
+      phone: parsed.data.telephone,
+      email: parsed.data.email,
+      program_title: prog?.title ?? null,
+      program_level: prog?.level ?? null,
+      program_title_2: prog2?.title ?? null,
+      program_level_2: prog2?.level ?? null,
+      tuition_title: tier?.title ?? null,
+      tuition_price: tier?.price ?? null,
+      message: parsed.data.message || null,
+      created_at: createdAt,
+      status: "pending",
+      whatsapp_sent: false,
+    };
     
-    const { data: dbData, error: dbError } = await supabase
+    const { error: dbError } = await supabase
       .from('applications')
       .insert({
         receipt_number: receiptNumber,
@@ -147,34 +168,17 @@ function AdmissionsPage() {
         tuition_price: tier?.price ?? null,
         message: parsed.data.message || null,
         status: "pending",
-      })
-      .select()
-      .single();
+      });
 
     if (dbError) {
+      if (whatsappWindow && !whatsappWindow.closed) {
+        whatsappWindow.close();
+      }
       console.error(dbError);
       toast.error("Erreur lors de l'enregistrement de l'inscription");
       setSubmitting(false);
       return;
     }
-
-    const inserted: Submitted = {
-      id: dbData.id,
-      receipt_number: dbData.receipt_number,
-      full_name: dbData.full_name,
-      phone: dbData.phone,
-      email: dbData.email,
-      program_title: dbData.program_title,
-      program_level: dbData.program_level as any,
-      program_title_2: dbData.program_title_2,
-      program_level_2: dbData.program_level_2 as any,
-      tuition_title: dbData.tuition_title,
-      tuition_price: dbData.tuition_price,
-      message: dbData.message,
-      created_at: dbData.created_at,
-      status: dbData.status,
-      whatsapp_sent: false,
-    };
 
     try {
       await downloadReceipt(inserted);
@@ -187,9 +191,13 @@ function AdmissionsPage() {
     setSubmitting(false);
     setSubmitted(inserted);
 
-    setTimeout(() => {
-      window.open(whatsappLink(buildWhatsappText(inserted)), "_blank", "noopener,noreferrer");
-    }, 800);
+    const whatsappUrl = whatsappLink(buildWhatsappText(inserted));
+    if (whatsappWindow && !whatsappWindow.closed) {
+      whatsappWindow.location.href = whatsappUrl;
+      whatsappWindow.focus();
+    } else {
+      window.location.href = whatsappUrl;
+    }
   }
 
   async function confirmWhatsappSent() {
