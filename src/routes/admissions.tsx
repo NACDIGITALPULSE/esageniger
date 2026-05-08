@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import { tuitionTiers } from "@/data/tuition";
 import { CheckCircle2, FileText, MessageCircle, Download, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmApplicationWhatsapp, submitApplication } from "@/lib/admissions.functions";
 
 const searchSchema = z.object({ programme: z.string().optional() });
 
@@ -68,6 +70,8 @@ function generateReceiptNumber(): string {
 }
 
 function AdmissionsPage() {
+  const submitApplicationFn = useServerFn(submitApplication);
+  const confirmApplicationWhatsappFn = useServerFn(confirmApplicationWhatsapp);
   const search = Route.useSearch();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [programme, setProgramme] = useState<string>(search.programme ?? "");
@@ -130,51 +134,47 @@ function AdmissionsPage() {
     const prog2 = parsed.data.programme2 ? allPrograms.find((p) => p.id === parsed.data.programme2) : undefined;
     const tier = tuitionTiers.find((t) => t.id === parsed.data.palier);
     const receiptNumber = generateReceiptNumber();
-    const createdAt = new Date().toISOString();
+    let inserted: Submitted;
 
-    const inserted: Submitted = {
-      id: crypto.randomUUID(),
-      receipt_number: receiptNumber,
-      full_name: parsed.data.nom,
-      phone: parsed.data.telephone,
-      email: parsed.data.email,
-      program_title: prog?.title ?? null,
-      program_level: prog?.level ?? null,
-      program_title_2: prog2?.title ?? null,
-      program_level_2: prog2?.level ?? null,
-      tuition_title: tier?.title ?? null,
-      tuition_price: tier?.price ?? null,
-      message: parsed.data.message || null,
-      created_at: createdAt,
-      status: "pending",
-      whatsapp_sent: false,
-    };
-    
-    const { error: dbError } = await supabase
-      .from('applications')
-      .insert({
+    try {
+      const dbData = await submitApplicationFn({
+        data: {
         receipt_number: receiptNumber,
         full_name: parsed.data.nom,
         phone: parsed.data.telephone,
         email: parsed.data.email,
-        program_id: null,
-        program_id_2: null,
         program_title: prog?.title ?? null,
         program_level: prog?.level ?? null,
         program_title_2: prog2?.title ?? null,
         program_level_2: prog2?.level ?? null,
-        tuition_tier_id: null,
         tuition_title: tier?.title ?? null,
         tuition_price: tier?.price ?? null,
         message: parsed.data.message || null,
-        status: "pending",
+        },
       });
 
-    if (dbError) {
+      inserted = {
+        id: dbData.id,
+        receipt_number: dbData.receipt_number,
+        full_name: dbData.full_name,
+        phone: dbData.phone,
+        email: dbData.email,
+        program_title: dbData.program_title,
+        program_level: dbData.program_level,
+        program_title_2: dbData.program_title_2,
+        program_level_2: dbData.program_level_2,
+        tuition_title: dbData.tuition_title,
+        tuition_price: dbData.tuition_price,
+        message: dbData.message,
+        created_at: dbData.created_at,
+        status: dbData.status,
+        whatsapp_sent: Boolean(dbData.whatsapp_sent),
+      };
+    } catch (error) {
       if (whatsappWindow && !whatsappWindow.closed) {
         whatsappWindow.close();
       }
-      console.error(dbError);
+      console.error(error);
       toast.error("Erreur lors de l'enregistrement de l'inscription");
       setSubmitting(false);
       return;
@@ -203,19 +203,13 @@ function AdmissionsPage() {
   async function confirmWhatsappSent() {
     if (!submitted) return;
     setConfirmingWhatsapp(true);
-    const { error } = await supabase
-      .from('applications')
-      .update({ 
-        whatsapp_sent: true,
-        whatsapp_sent_at: new Date().toISOString()
-      })
-      .eq('id', submitted.id);
-
-    if (error) {
-      toast.error("Erreur lors de la confirmation");
-    } else {
+    try {
+      await confirmApplicationWhatsappFn({ data: { applicationId: submitted.id } });
       setSubmitted({ ...submitted, whatsapp_sent: true });
       toast.success("Message WhatsApp confirmé !");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur lors de la confirmation");
     }
     setConfirmingWhatsapp(false);
   }
