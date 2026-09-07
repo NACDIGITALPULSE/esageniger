@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,6 @@ import { tuitionTiers } from "@/data/tuition";
 import { CheckCircle2, FileText, MessageCircle, Download, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { confirmApplicationWhatsapp, submitApplication } from "@/lib/admissions.functions";
 
 const searchSchema = z.object({ programme: z.string().optional() });
 
@@ -70,8 +68,6 @@ function generateReceiptNumber(): string {
 }
 
 function AdmissionsPage() {
-  const submitApplicationFn = useServerFn(submitApplication);
-  const confirmApplicationWhatsappFn = useServerFn(confirmApplicationWhatsapp);
   const search = Route.useSearch();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [programme, setProgramme] = useState<string>(search.programme ?? "");
@@ -134,62 +130,64 @@ function AdmissionsPage() {
     const prog2 = parsed.data.programme2 ? allPrograms.find((p) => p.id === parsed.data.programme2) : undefined;
     const tier = tuitionTiers.find((t) => t.id === parsed.data.palier);
     const receiptNumber = generateReceiptNumber();
-    let inserted: Submitted;
-
-    try {
-      const dbData = await submitApplicationFn({
-        data: {
-        receipt_number: receiptNumber,
-        full_name: parsed.data.nom,
-        phone: parsed.data.telephone,
-        email: parsed.data.email,
-        program_title: prog?.title ?? null,
-        program_level: prog?.level ?? null,
-        program_title_2: prog2?.title ?? null,
-        program_level_2: prog2?.level ?? null,
-        tuition_title: tier?.title ?? null,
-        tuition_price: tier?.price ?? null,
-        message: parsed.data.message || null,
-        },
-      });
-
-      inserted = {
-        id: dbData.id,
-        receipt_number: dbData.receipt_number,
-        full_name: dbData.full_name,
-        phone: dbData.phone,
-        email: dbData.email,
-        program_title: dbData.program_title,
-        program_level: dbData.program_level,
-        program_title_2: dbData.program_title_2,
-        program_level_2: dbData.program_level_2,
-        tuition_title: dbData.tuition_title,
-        tuition_price: dbData.tuition_price,
-        message: dbData.message,
-        created_at: dbData.created_at,
-        status: dbData.status,
-        whatsapp_sent: Boolean(dbData.whatsapp_sent),
-      };
-    } catch (error) {
-      if (whatsappWindow && !whatsappWindow.closed) {
-        whatsappWindow.close();
-      }
-      console.error(error);
-      toast.error("Erreur lors de l'enregistrement de l'inscription");
-      setSubmitting(false);
-      return;
-    }
+    const inserted: Submitted = {
+      id: crypto.randomUUID(),
+      receipt_number: receiptNumber,
+      full_name: parsed.data.nom,
+      phone: parsed.data.telephone,
+      email: parsed.data.email,
+      program_title: prog?.title ?? null,
+      program_level: prog?.level ?? null,
+      program_title_2: prog2?.title ?? null,
+      program_level_2: prog2?.level ?? null,
+      tuition_title: tier?.title ?? null,
+      tuition_price: tier?.price ?? null,
+      message: parsed.data.message || null,
+      created_at: new Date().toISOString(),
+      status: "pending",
+      whatsapp_sent: false,
+    };
 
     try {
       await downloadReceipt(inserted);
       toast.success("Reçu PDF téléchargé !");
     } catch (err) {
       console.error(err);
-      toast.error("Erreur lors de la génération du PDF");
+      if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
+      toast.error("Erreur lors de la génération du PDF. Utilisez le bouton Réessayer.");
+      setSubmitting(false);
+      setSubmitted(inserted);
+      return;
     }
 
-    setSubmitting(false);
     setSubmitted(inserted);
+
+    // Enregistrement direct depuis le navigateur : compatible avec un site
+    // statique hébergé sur Hostinger. Une panne réseau ne bloque jamais le PDF
+    // ni l'ouverture de WhatsApp.
+    const { error: saveError } = await supabase.from("applications").insert({
+      id: inserted.id,
+      receipt_number: inserted.receipt_number,
+      full_name: inserted.full_name,
+      phone: inserted.phone,
+      email: inserted.email,
+      program_id: null,
+      program_id_2: null,
+      program_title: inserted.program_title,
+      program_level: inserted.program_level,
+      program_title_2: inserted.program_title_2,
+      program_level_2: inserted.program_level_2,
+      tuition_tier_id: null,
+      tuition_title: inserted.tuition_title,
+      tuition_price: inserted.tuition_price,
+      message: inserted.message,
+      status: inserted.status,
+    });
+
+    if (saveError) {
+      console.error("Application save failed", saveError);
+      toast.warning("Le reçu est prêt, mais la copie administrative n'a pas pu être enregistrée.");
+    }
 
     const whatsappUrl = whatsappLink(buildWhatsappText(inserted));
     if (whatsappWindow && !whatsappWindow.closed) {
@@ -198,20 +196,18 @@ function AdmissionsPage() {
     } else {
       window.location.href = whatsappUrl;
     }
+    setSubmitting(false);
   }
 
   async function confirmWhatsappSent() {
     if (!submitted) return;
     setConfirmingWhatsapp(true);
     try {
-      await confirmApplicationWhatsappFn({ data: { applicationId: submitted.id } });
       setSubmitted({ ...submitted, whatsapp_sent: true });
       toast.success("Message WhatsApp confirmé !");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de la confirmation");
+    } finally {
+      setConfirmingWhatsapp(false);
     }
-    setConfirmingWhatsapp(false);
   }
 
   function buildWhatsappText(s: Submitted) {
@@ -284,7 +280,7 @@ function AdmissionsPage() {
                 <p className="text-sm text-muted-foreground">
                   {submitted.whatsapp_sent 
                     ? "Nous avons bien noté que vous avez envoyé votre message. Notre équipe reviendra vers vous très prochainement."
-                    : "Votre reçu PDF est prêt. Pour valider votre inscription, vous devez nous envoyer ce message sur WhatsApp."}
+                    : "Votre reçu PDF est prêt. Ouvrez WhatsApp, puis joignez le PDF téléchargé à votre message avant de l'envoyer."}
                 </p>
                 
                 {!submitted.whatsapp_sent && (
@@ -304,7 +300,7 @@ function AdmissionsPage() {
                 )}
 
                 <div className="flex flex-wrap justify-center gap-3 pt-4">
-                  <Button variant="outline" onClick={() => downloadReceipt(submitted)}>
+                  <Button variant="outline" onClick={() => void downloadReceipt(submitted)}>
                     <Download className="mr-2 h-4 w-4" /> Télécharger à nouveau
                   </Button>
                   <Button asChild variant="ghost" className="text-[var(--whatsapp)]">
