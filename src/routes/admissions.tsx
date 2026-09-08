@@ -162,6 +162,15 @@ function AdmissionsPage() {
 
     setSubmitted(inserted);
 
+    const whatsappUrl = whatsappLink(buildWhatsappText(inserted));
+    if (whatsappWindow && !whatsappWindow.closed) {
+      whatsappWindow.location.href = whatsappUrl;
+      whatsappWindow.focus();
+    } else {
+      window.location.href = whatsappUrl;
+    }
+    setSubmitting(false);
+
     // Enregistrement direct depuis le navigateur : compatible avec un site
     // statique hébergé sur Hostinger. Une panne réseau ne bloque jamais le PDF
     // ni l'ouverture de WhatsApp.
@@ -188,15 +197,6 @@ function AdmissionsPage() {
       console.error("Application save failed", saveError);
       toast.warning("Le reçu est prêt, mais la copie administrative n'a pas pu être enregistrée.");
     }
-
-    const whatsappUrl = whatsappLink(buildWhatsappText(inserted));
-    if (whatsappWindow && !whatsappWindow.closed) {
-      whatsappWindow.location.href = whatsappUrl;
-      whatsappWindow.focus();
-    } else {
-      window.location.href = whatsappUrl;
-    }
-    setSubmitting(false);
   }
 
   async function confirmWhatsappSent() {

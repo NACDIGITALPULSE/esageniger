@@ -16,10 +16,14 @@ import { pathToFileURL } from "node:url";
 
 const root = resolve(process.cwd());
 const clientDir = join(root, "dist", "client");
-const serverEntry = join(root, "dist", "server", "index.js");
+const serverEntryCandidates = [
+  join(root, "dist", "server", "index.mjs"),
+  join(root, "dist", "server", "index.js"),
+];
+const serverEntry = serverEntryCandidates.find(existsSync);
 const outDir = join(root, "dist-static");
 
-if (!existsSync(clientDir) || !existsSync(serverEntry)) {
+if (!existsSync(clientDir) || !serverEntry) {
   console.error("❌ dist/ introuvable — lance d'abord `vite build`.");
   process.exit(1);
 }
